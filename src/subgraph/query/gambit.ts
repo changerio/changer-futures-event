@@ -149,6 +149,34 @@ export const GetCloseTradesOfUsers = gql`
   }
 `;
 
+export const GetCloseTradesOfUsersWhereTimestamp = gql`
+  query GetCloseTradesOfUsersWhereTimestamp($first: Int!, $skip: Int!, $startTime: Int!, $endTime: Int!) {
+    traders (first: $first, skip: $skip) {
+      closeTradeCount
+      id
+      closeTrades(first: 1000, where: {timestamp_gte: "$startTime", timestamp_lt: "$endTime"}) {
+        id
+        percentProfit
+        usdcSentToTrader
+        reason
+        timestamp
+        trade {
+          openPrice
+          positionSizeUsdc
+          index
+          leverage
+          initialPosToken
+          pairIndex
+          buy
+          id
+          sl
+          tp
+        }
+      }
+    }
+  }
+`;
+
 export const GetCloseTradesOfTraderOnlyProfit = gql`
   query GetCloseTradesOfTraderOnlyProfit($id: ID!) {
     trader(id: $id) {
@@ -191,6 +219,33 @@ export const GetCloseTradesOfTradersOnlyProfit = gql`
           positionSizeUsdc
           leverage
         }
+      }
+    }
+  }
+`;
+
+export const GetCloseTradesWhereTimestamp = gql`
+  query GetCloseTradesWhereTimestamp($first: Int!, $skip: Int!, $startTime: String!, $endTime: String!) {
+    closeTrades(first: 1000, skip: $skip, where: {timestamp_gte: $startTime, timestamp_lt: $endTime}) {
+      id
+      percentProfit
+      usdcSentToTrader
+      reason
+      timestamp
+      trader {
+        id
+      }
+      trade {
+        openPrice
+        positionSizeUsdc
+        index
+        leverage
+        initialPosToken
+        pairIndex
+        buy
+        id
+        sl
+        tp
       }
     }
   }

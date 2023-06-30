@@ -1,6 +1,6 @@
 import { Request, Response, Router } from "express";
 
-import { getCloseTradesOfTraderForTestnet10th, getCloseTradesOfTraderForTestnet9th, getRankingOfPnl, getRankingOfPnlRealTime, getRankingOfTrader, getRankingOfTradingVolume, getRankingOfTradingVolumeRealTime, getTestnetEvent910, getTestnetEventByAddress, getTestnetEventResult, getTradersForTestnet10th, getTradersForTestnet9th, setMainnetOpenEvent } from "../services/eventService";
+import { getRankingOfPnl, getRankingOfPnlRealTime, getRankingOfTrader, getRankingOfTradingVolume, getRankingOfTradingVolumeRealTime, setMainnetOpenEvent, upsertMainnetOpenEvent } from "../services/eventService";
 
 /**
  * @swagger
@@ -135,6 +135,25 @@ eventRouter.get("/mainnet-open/user", async (req: Request, res: Response) => {
  */
 eventRouter.post("/mainnet-open/", async (req: Request, res: Response) => {
     const ret = await setMainnetOpenEvent();
+    return res.status(200).send(ret);
+});
+
+/**
+ * @swagger
+ * /event/mainnet-open/:
+ *   put:
+ *    summary: 메인넷 오픈 이벤트 수동 업데이트 (upsert)
+ *    tags: [Event]
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.put("/mainnet-open/", async (req: Request, res: Response) => {
+    const ret = await upsertMainnetOpenEvent();
     return res.status(200).send(ret);
 });
 
