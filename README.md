@@ -7,6 +7,7 @@ app
 ├── node_modules
 ├── src
      ├── config      # Config
+     ├── cache       # Local cache
      ├── routes      # Api Endpoints
      ├── services    # Business
      ├── worker      # Cron job
@@ -15,6 +16,7 @@ app
 ├── test
      └── depend on src
 ├── .gitignore
+├── .env
 ├── package.json
 └── README.md
 
