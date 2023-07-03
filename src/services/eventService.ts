@@ -71,7 +71,7 @@ async function makeRankingInfos() {
             const leverage = parseInt(closeTrade.trade.leverage.toString())
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
             sumLeverage += leverage;
-            sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10: -100 ; // tradePnl / positionSizeUsdc * 100;
+            sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
             tv += positionSizeUsdc * leverage;
             pnl += tradePnl;
             if (maxCloseTimestamp < closeTrade.timestamp) {
@@ -103,7 +103,7 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: string) {
         const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
         const leverage = parseInt(closeTrade.trade.leverage.toString())
         const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
-        const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10: -100 ; // tradePnl / positionSizeUsdc * 100;
+        const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
         const tv = positionSizeUsdc * leverage;
         const pnl = tradePnl;
 
@@ -168,10 +168,10 @@ async function saveMainnetOpenEvent(rankingInfos: RankingInfo[]) {
     // return { top25PnlTraders: TOP_25_PNL_TRADERS, top25TvTraders: TOP_25_TV_TRADERS };
 }
 
-function combineLists(list1: any[], list2: any[]): any[] {
-    return list1.map((item1) => {
-        const item2 = list2.find((item) => item.address === item1.address);
-        return { ...item1, ...item2 };
+function combineLists(pnlRanking: any[], tvRanking: any[]): any[] {
+    return pnlRanking.map((item1) => {
+        const item2 = tvRanking.find((item) => item.address == item1.address);
+        return { ...item1, tvRanking: item2.tvRanking };
     });
 }
 
