@@ -56,24 +56,27 @@ export async function getCloseTradesOfTradersOnlyProfit() {
   return result;
 }
 
-export async function GetCloseTradesOfUsersWhereTimestamp(first: number = 1000, skip: number = 0, startTime: number = 0, endTime: number = Date.now()) {
+export async function GetCloseTradesOfUsersWhereTimestamp(first: number = 1000, skip: number = 0, startTime: string = "0", endTime: string = Math.round(Date.now() / 1000).toString()) {
   const result = await execute(query.GetCloseTradesOfUsersWhereTimestamp, { first, skip, startTime, endTime });
   return result;
 }
 
-export async function getCloseTradesWhereTimestamp(first: number = 1000, skip: number = 0, startTime: string = '0', endTime: string = Date.now().toString()) {
+export async function getCloseTradesWhereTimestamp(first: number = 1000, skip: number = 0, startTime: string = "0", endTime: string = Math.round(Date.now() / 1000).toString()) {
   const result = await execute(query.GetCloseTradesWhereTimestamp, { first, skip, startTime, endTime });
   return result;
 }
 
-export async function getCloseTradesWhereTimestampAll(startTime: string = '0', endTime: string = Date.now().toString()) {
+export async function getCloseTradesWhereTimestampAll(startTime: number = 0, endTime: number = Math.round(Date.now() / 1000)) {
   const first: number = 1000;
   let skip: number = 0;
 
   let result = [];
   while (true) {
-    const data = await getCloseTradesWhereTimestamp(first, skip, startTime, endTime);
-    console.log(data)
+    const data = await getCloseTradesWhereTimestamp(first, skip, startTime.toString(), endTime.toString());
+    if (!data.hasOwnProperty('closeTrades')) {
+      return data;
+    }
+
     const { closeTrades } = data;
 
     if (closeTrades.length === 0) {

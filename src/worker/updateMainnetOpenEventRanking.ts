@@ -11,8 +11,8 @@ function updateMainnetOpenEventRanking() {
 export const loadWorker = () => {
   // 10s
   // schedule.scheduleJob("*/10 * * * * *", () => {
-  // 10m (after 10s)
-  schedule.scheduleJob("10 */10 * * * *", () => {
+  // 10m
+  schedule.scheduleJob("*/10 * * * *", () => {
     updateMainnetOpenEventRanking();
   });
 };

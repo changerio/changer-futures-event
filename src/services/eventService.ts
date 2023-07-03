@@ -33,13 +33,23 @@ function createRankingData(address: string, tradeNumber: number, tv: number, pnl
 
 export async function upsertMainnetOpenEvent() {
     let rankingInfos: RankingInfo[];
-    let startTimestamp = await cache.get(END_TIMESTAMP) ?? 0;
-    logger.info(`!!!! ${startTimestamp}`)
-    // || !TOP_25_PNL_TRADERS || !TOP_25_TV_TRADERS || !OPEN_EVENT_RANKING_DATA || Object.keys(OPEN_EVENT_RANKING_DATA).length === 0
-    if (startTimestamp === 0) {
+    let startTimestamp: number = await cache.get(END_TIMESTAMP) ?? 0;
+    if (!TOP_25_PNL_TRADERS || !TOP_25_TV_TRADERS || !OPEN_EVENT_RANKING_DATA || Object.keys(OPEN_EVENT_RANKING_DATA).length === 0) {
+        TOP_25_PNL_TRADERS = await cache.get(PNL_CACHE_KEY);
+        TOP_25_TV_TRADERS = await cache.get(TV_CACHE_KEY);
+        OPEN_EVENT_RANKING_DATA = await cache.get(RANKING_CACHE_KEY);
+        logger.info(`Read cache`);
+    }
+
+    if (startTimestamp === 0 || !TOP_25_PNL_TRADERS || !TOP_25_TV_TRADERS || !OPEN_EVENT_RANKING_DATA || Object.keys(OPEN_EVENT_RANKING_DATA).length === 0) {
+        logger.info(`No cache. Update all trades`);
         rankingInfos = await makeRankingInfos();
     } else {
+        logger.info(`Update only changes`);
         rankingInfos = await makeRankingInfosWhereTimestamp(startTimestamp);
+        if (rankingInfos.length == 0) {
+            return { pnlRanking: TOP_25_PNL_TRADERS, tvRanking: TOP_25_TV_TRADERS };
+        }
     }
 
     return await saveMainnetOpenEvent(rankingInfos);
@@ -54,7 +64,7 @@ async function makeRankingInfos() {
     const data = await getCloseTradesOfUsersAll();
     const traders: any = data.traders;
     logger.info(`trader number : ${traders.length}`);
-    let maxCloseTimestamp = 0;
+    let maxCloseTimestamp: number = 0;
 
     let rankingInfos: RankingInfo[] = [];
     for (let trader of traders) {
@@ -74,8 +84,9 @@ async function makeRankingInfos() {
             sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
             tv += positionSizeUsdc * leverage;
             pnl += tradePnl;
-            if (maxCloseTimestamp < closeTrade.timestamp) {
-                maxCloseTimestamp = closeTrade.timestamp;
+            const tradeTimestamp = Number(closeTrade.timestamp);
+            if (maxCloseTimestamp < tradeTimestamp) {
+                maxCloseTimestamp = tradeTimestamp;
             }
         }
         const tradeNumber = trader.closeTrades.length;
@@ -89,13 +100,19 @@ async function makeRankingInfos() {
     return rankingInfos;
 }
 
-async function makeRankingInfosWhereTimestamp(startTimestamp: string) {
-    const startTime: string = startTimestamp;
-    const endTime: string = Date.now().toString();
-    const data = await getCloseTradesWhereTimestampAll(startTime, endTime);
+async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
+    const endTime: number = Math.round(Date.now() / 1000);
+    const data = await getCloseTradesWhereTimestampAll(startTimestamp, endTime);
+    if (!data.hasOwnProperty('closeTrades')) {
+        logger.error(`Failed to get data from subgraph.`);
+    }
     const closeTrades: any = data.closeTrades;
     logger.info(`closeTrades number : ${closeTrades.length}`);
-    let maxCloseTimestamp = startTimestamp;
+    let maxCloseTimestamp: number = startTimestamp;
+    if (closeTrades.length == 0) {
+        logger.info(`Number of closeTrades is zero.`);
+        return [];
+    }
 
     for (let closeTrade of closeTrades) {
         const address = closeTrade.trader.id;
@@ -118,9 +135,10 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: string) {
         OPEN_EVENT_RANKING_DATA[address].avgLeverage = (OPEN_EVENT_RANKING_DATA[address].avgLeverage * originTradeNumber + leverage) / (originTradeNumber + 1);
         OPEN_EVENT_RANKING_DATA[address].avgPnlPercent = (OPEN_EVENT_RANKING_DATA[address].avgPnlPercent * originTradeNumber + pnlPercent) / (originTradeNumber + 1);
         OPEN_EVENT_RANKING_DATA[address].sumPnlPercent += pnlPercent;
+        const tradeTimestamp = Number(closeTrade.timestamp);
 
-        if (maxCloseTimestamp < closeTrade.timestamp) {
-            maxCloseTimestamp = closeTrade.timestamp;
+        if (maxCloseTimestamp < tradeTimestamp) {
+            maxCloseTimestamp = tradeTimestamp;
         }
     }
 
