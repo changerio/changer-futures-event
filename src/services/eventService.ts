@@ -71,7 +71,7 @@ async function makeRankingInfos() {
             const leverage = parseInt(closeTrade.trade.leverage.toString())
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
             sumLeverage += leverage;
-            sumPnlPercent += closeTrade.percentProfit / 1e10; // tradePnl / positionSizeUsdc * 100;
+            sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10: -100 ; // tradePnl / positionSizeUsdc * 100;
             tv += positionSizeUsdc * leverage;
             pnl += tradePnl;
             if (maxCloseTimestamp < closeTrade.timestamp) {
@@ -103,7 +103,7 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: string) {
         const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
         const leverage = parseInt(closeTrade.trade.leverage.toString())
         const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
-        const pnlPercent = closeTrade.percentProfit / 1e10; // tradePnl / positionSizeUsdc * 100;
+        const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10: -100 ; // tradePnl / positionSizeUsdc * 100;
         const tv = positionSizeUsdc * leverage;
         const pnl = tradePnl;
 
