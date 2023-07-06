@@ -1,5 +1,5 @@
 {
-    "name": "changer-futures-monkey",
+    "name": "changer-futures-event",
     "version": "1.0.0",
     "packageManager": "yarn@3.5.0",
     "scripts": {
