@@ -10,11 +10,12 @@ const cache = getEventCache();
 let TOP_25_PNL_TRADERS: RankingInfo[] = [];
 let TOP_25_TV_TRADERS: RankingInfo[] = [];
 let OPEN_EVENT_RANKING_DATA: { [key: string]: RankingInfo } = {};
+let maxCloseTimestamp = 0;
 // let OPEN_EVENT_RANKING_DATA: Record<string, RankingInfo> = {};
 
 interface RankingInfo {
     address: string,
-    tradeNumber: number,
+    tradeCount: number,
     tv: number,
     pnl: number,
     // onlyProfit: number,
@@ -26,9 +27,9 @@ interface RankingInfo {
     tvRanking: number,
 }
 
-function createRankingData(address: string, tradeNumber: number, tv: number, pnl: number, avgLeverage: number,
+function createRankingData(address: string, tradeCount: number, tv: number, pnl: number, avgLeverage: number,
     avgPnlPercent: number, sumPnlPercent: number, tvRanking: number = -1, pnlRanking: number = -1): RankingInfo {
-    return { address, tradeNumber, tv, pnl, avgLeverage, avgPnlPercent, sumPnlPercent, tvRanking, pnlRanking };
+    return { address, tradeCount, tv, pnl, avgLeverage, avgPnlPercent, sumPnlPercent, tvRanking, pnlRanking };
 }
 
 export async function upsertMainnetOpenEvent() {
@@ -64,7 +65,6 @@ async function makeRankingInfos() {
     const data = await getCloseTradesOfUsersAll();
     const traders: any = data.traders;
     logger.info(`trader number : ${traders.length}`);
-    let maxCloseTimestamp: number = 0;
 
     let rankingInfos: RankingInfo[] = [];
     for (let trader of traders) {
@@ -89,14 +89,13 @@ async function makeRankingInfos() {
                 maxCloseTimestamp = tradeTimestamp;
             }
         }
-        const tradeNumber = trader.closeTrades.length;
-        const avgLeverage = sumLeverage / tradeNumber;
-        const avgPnlPercent = sumPnlPercent / tradeNumber;
+        const tradeCount = trader.closeTrades.length;
+        const avgLeverage = sumLeverage / tradeCount;
+        const avgPnlPercent = sumPnlPercent / tradeCount;
 
-        rankingInfos.push(createRankingData(trader.id, tradeNumber, tv, pnl, avgLeverage, avgPnlPercent, sumPnlPercent));
+        rankingInfos.push(createRankingData(trader.id, tradeCount, tv, pnl, avgLeverage, avgPnlPercent, sumPnlPercent));
     }
 
-    await cache.set(END_TIMESTAMP, maxCloseTimestamp + 1);
     return rankingInfos;
 }
 
@@ -108,7 +107,6 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
     }
     const closeTrades: any = data.closeTrades;
     logger.info(`closeTrades number : ${closeTrades.length}`);
-    let maxCloseTimestamp: number = startTimestamp;
     if (closeTrades.length == 0) {
         logger.info(`Number of closeTrades is zero.`);
         return [];
@@ -128,12 +126,12 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
             OPEN_EVENT_RANKING_DATA[address] = createRankingData(address, 0, 0, 0, 0, 0, 0);
         }
 
-        const originTradeNumber = OPEN_EVENT_RANKING_DATA[address].tradeNumber;
-        OPEN_EVENT_RANKING_DATA[address].tradeNumber += 1;
+        const originTradeCount = OPEN_EVENT_RANKING_DATA[address].tradeCount;
+        OPEN_EVENT_RANKING_DATA[address].tradeCount += 1;
         OPEN_EVENT_RANKING_DATA[address].tv += tv;
         OPEN_EVENT_RANKING_DATA[address].pnl += pnl;
-        OPEN_EVENT_RANKING_DATA[address].avgLeverage = (OPEN_EVENT_RANKING_DATA[address].avgLeverage * originTradeNumber + leverage) / (originTradeNumber + 1);
-        OPEN_EVENT_RANKING_DATA[address].avgPnlPercent = (OPEN_EVENT_RANKING_DATA[address].avgPnlPercent * originTradeNumber + pnlPercent) / (originTradeNumber + 1);
+        OPEN_EVENT_RANKING_DATA[address].avgLeverage = (OPEN_EVENT_RANKING_DATA[address].avgLeverage * originTradeCount + leverage) / (originTradeCount + 1);
+        OPEN_EVENT_RANKING_DATA[address].avgPnlPercent = (OPEN_EVENT_RANKING_DATA[address].avgPnlPercent * originTradeCount + pnlPercent) / (originTradeCount + 1);
         OPEN_EVENT_RANKING_DATA[address].sumPnlPercent += pnlPercent;
         const tradeTimestamp = Number(closeTrade.timestamp);
 
@@ -143,7 +141,6 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
     }
 
     const rankingInfos: RankingInfo[] = Object.values(OPEN_EVENT_RANKING_DATA);
-    await cache.set(END_TIMESTAMP, maxCloseTimestamp + 1);
     return rankingInfos;
 }
 
@@ -151,8 +148,6 @@ export async function getRankingOfTradingVolumeRealTime() {
     let rankingInfos: RankingInfo[] = await makeRankingInfos();
 
     const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv).map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
-
-    // const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv);
     const topTrader = tvRanking.slice(0, 100);
 
     return topTrader;
@@ -162,7 +157,6 @@ export async function getRankingOfPnlRealTime() {
     let rankingInfos: RankingInfo[] = await makeRankingInfos();
 
     const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent).map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
-    // const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent);
     const topTrader = pnlRanking.slice(0, 100);
 
     return topTrader;
@@ -180,6 +174,7 @@ async function saveMainnetOpenEvent(rankingInfos: RankingInfo[]) {
         return acc;
     }, {});
 
+    await cache.set(END_TIMESTAMP, maxCloseTimestamp + 1);
     await cache.set(PNL_CACHE_KEY, TOP_25_PNL_TRADERS);
     await cache.set(TV_CACHE_KEY, TOP_25_TV_TRADERS);
     await cache.set(RANKING_CACHE_KEY, OPEN_EVENT_RANKING_DATA);
