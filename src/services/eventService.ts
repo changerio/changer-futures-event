@@ -150,8 +150,10 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
 export async function getRankingOfTradingVolumeRealTime() {
     let rankingInfos: RankingInfo[] = await makeRankingInfos();
 
-    rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv);
-    const topTrader = rankingInfos.slice(0, 25);
+    const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv).map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
+
+    // const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv);
+    const topTrader = tvRanking.slice(0, 100);
 
     return topTrader;
 }
@@ -159,8 +161,9 @@ export async function getRankingOfTradingVolumeRealTime() {
 export async function getRankingOfPnlRealTime() {
     let rankingInfos: RankingInfo[] = await makeRankingInfos();
 
-    rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent);
-    const topTrader = rankingInfos.slice(0, 25);
+    const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent).map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
+    // const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent);
+    const topTrader = pnlRanking.slice(0, 100);
 
     return topTrader;
 }
