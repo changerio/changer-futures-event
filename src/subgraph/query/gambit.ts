@@ -126,7 +126,7 @@ export const GetCloseTradesOfUsers = gql`
     traders (first: $first, skip: $skip) {
       closeTradeCount
       id
-      closeTrades(first: 1000) {
+      closeTrades(first: 1000, where: {reason_not: MARKET_OPEN_CANCELED}) {
         id
         percentProfit
         usdcSentToTrader

@@ -8,6 +8,7 @@ import {
   getRankingOfTradingVolumeRealTime,
   setMainnetOpenEvent,
   upsertMainnetOpenEvent,
+  getDailyCloseTrade
 } from "../services/eventService";
 
 /**
@@ -102,6 +103,46 @@ eventRouter.get("/mainnet-open/tv", async (req: Request, res: Response) => {
 
   return res.status(200).send(ret);
 });
+
+/**
+ * @swagger
+ * /event/mainnet-open/stat/:
+ *   get:
+ *    summary: Mainnet statics per day or trade
+ *    tags: [Event]
+ *    parameters:
+ *      - name: isAggregate
+ *        in: query
+ *        requires: true
+ *        description: aggregate per date
+ *        example: 'true'
+ *        schema:
+ *          type: string
+  *      - name: isCsv
+ *        in: query
+ *        requires: true
+ *        description: CSV(plain text) or Object
+ *        example: 'true'
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.get("/mainnet-open/stat", async (req: Request, res: Response) => {
+    const isAggregate: boolean = (req.query.isAggregate as string).toLowerCase() === "true" ? true : false;
+    const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+
+    const ret = await getDailyCloseTrade(isAggregate, isCsv);
+
+    return res.status(200).send(ret);
+  }
+);
+
 
 /**
  * @swagger
