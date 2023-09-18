@@ -8,17 +8,17 @@ const options = {
 	swaggerDefinition: {
 		openapi: "3.0.1",
 		info: {
-			title: "Changer-futures-monkey",
+			title: "Changer-futures-event",
 			version: "1.0.0",
-			description: "monkey For ChainPartners",
+			description: "Event statics For Gambit",
 		},
 		servers: [
 			{
 				url: "http://localhost:3000",
 			},
 			{
-				url: "http://localhost:8080",
-			},
+				url: "https://service.gambit.trade:7443",
+			}
 		],
 		contact: {
 			name: "Changer dana",
