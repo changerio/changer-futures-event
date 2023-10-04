@@ -75,7 +75,7 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
     const data = await getCloseTradesOfUsersAll();
     const traders: any = data.traders;
 
-    const ret = new Map<String, {tradeVolume: number, tradeNum: number, newTrader:number, pnl: number, toTreasury:number, closeFee: number}>()
+    const ret = new Map<String, {tradeVolume: number, tradeNum: number, newTrader:number, pnl: number, toTreasury:number, closeFee: number, openFee: number}>()
 
     for (let trader of traders) {
         for (let closeTrade of trader.closeTrades) {
@@ -94,7 +94,7 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
             }
 
             if(!ret.has(key)) {
-                ret.set(key, {tradeVolume: 0, tradeNum: 0, newTrader:0, pnl:0, toTreasury: 0, closeFee: 0});
+                ret.set(key, {tradeVolume: 0, tradeNum: 0, newTrader:0, pnl:0, toTreasury: 0, closeFee: 0, openFee: 0});
             }
             
             const item = ret.get(key);
@@ -109,16 +109,18 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
 
                 let toTreasury = 0;
                 let closeFee = 0;
+                let feeP = 0.0004;
+                if(closeTrade.trade.pairIndex == 4 || closeTrade.trade.pairIndex == 5 || closeTrade.trade.pairIndex == 6) {
+                    feeP = 0.00006;
+                }
+                const openFee = tradingVolume * feeP;
+
                 // liquidation
                 if (-tradePnl > positionSizeUsdc * 0.9) {
                     closeFee = positionSizeUsdc * 0.05;
                     toTreasury = -tradePnl - closeFee;
                 } else {
                     //close trade
-                    let feeP = 0.0004;
-                    if(closeTrade.trade.pairIndex == 4 || closeTrade.trade.pairIndex == 5 || closeTrade.trade.pairIndex == 6) {
-                        feeP = 0.00006;
-                    }
                     closeFee = tradingVolume * feeP;
 
                     if(tradePnl + closeFee < 0  && tradePnl >= 0) {
@@ -131,10 +133,11 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
                 if(isAggregate) {
                     item.toTreasury += toTreasury;
                     item.closeFee += closeFee;
+                    item.openFee += openFee;
 
                     ret.set(key, item);
                 } else {
-                    ret.set(key, {tradeVolume: tradingVolume, tradeNum: 1, newTrader:isNewTrader, pnl:tradePnl, toTreasury, closeFee});
+                    ret.set(key, {tradeVolume: tradingVolume, tradeNum: 1, newTrader:isNewTrader, pnl:tradePnl, toTreasury, closeFee, openFee});
                 }
             }
         }
@@ -142,8 +145,8 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
 
     if(isCsv) {
         const retCSV:string[] = [];
-        ret.forEach((value: {tradeVolume: number, tradeNum: number, newTrader:number, pnl: number, toTreasury:number, closeFee: number}, key: String) => {
-            retCSV.push(`${key},${value.tradeNum},${value.tradeVolume},${value.newTrader},${value.pnl},${value.toTreasury},${value.closeFee}`)
+        ret.forEach((value: {tradeVolume: number, tradeNum: number, newTrader:number, pnl: number, toTreasury:number, closeFee: number, openFee:number}, key: String) => {
+            retCSV.push(`${key},${value.tradeNum},${value.tradeVolume},${value.newTrader},${value.pnl},${value.toTreasury},${value.closeFee},${value.openFee}`)
         });
 
         retCSV.sort((a, b) => {	
