@@ -32,6 +32,10 @@ function createRankingData(address: string, tradeCount: number, tv: number, pnl:
     return { address, tradeCount, tv, pnl, avgLeverage, avgPnlPercent, sumPnlPercent, tvRanking, pnlRanking };
 }
 
+function isForex(pairIndex) {
+    return pairIndex == "4" || pairIndex == "5" || pairIndex == "6"
+}
+
 export async function upsertMainnetOpenEvent() {
     let rankingInfos: RankingInfo[];
     let startTimestamp: number = await cache.get(END_TIMESTAMP) ?? 0;
@@ -64,13 +68,15 @@ export async function setMainnetOpenEvent() {
 async function makeRankingInfos() {
     const data = await getCloseTradesOfUsersAll();
     const traders: any = data.traders;
-    logger.info(`trader number : ${traders.length}`);
+    let totalTv = 0;
+    let totalTradeCount = 0;
 
     let rankingInfos: RankingInfo[] = [];
     for (let trader of traders) {
         if (!(trader && trader.closeTrades && trader.closeTrades.length > 0)) {
             rankingInfos.push(createRankingData(trader.id, 0, 0, 0, 0, 0, 0));
         }
+
         let sumLeverage = 0;
         let tv = 0;
         let sumPnlPercent = 0;
@@ -82,7 +88,8 @@ async function makeRankingInfos() {
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
             sumLeverage += leverage;
             sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-            tv += positionSizeUsdc * leverage;
+            tv += isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
+            // tv += positionSizeUsdc * leverage; // origin
             pnl += tradePnl;
             const tradeTimestamp = Number(closeTrade.timestamp);
             if (maxCloseTimestamp < tradeTimestamp) {
@@ -94,7 +101,12 @@ async function makeRankingInfos() {
         const avgPnlPercent = sumPnlPercent / tradeCount;
 
         rankingInfos.push(createRankingData(trader.id, tradeCount, tv, pnl, avgLeverage, avgPnlPercent, sumPnlPercent));
+        totalTv += tv;
+        totalTradeCount += trader.closeTrades.length;
     }
+    logger.info(`trader number : ${traders.length}`);
+    logger.info(`totalTv : ${totalTv}`);
+    logger.info(`totalTradeCount : ${totalTradeCount}`);
 
     return rankingInfos;
 }
@@ -119,7 +131,7 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
         const leverage = parseInt(closeTrade.trade.leverage.toString())
         const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
         const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-        const tv = positionSizeUsdc * leverage;
+        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
         const pnl = tradePnl;
 
         if (!OPEN_EVENT_RANKING_DATA.hasOwnProperty(address)) {
