@@ -65,6 +65,110 @@ export async function setMainnetOpenEvent() {
     return await saveMainnetOpenEvent(rankingInfos);
 }
 
+function pad0ToNum(num: number):string {
+    if(num > 0 && num < 10) {
+        return `0${num}`;
+    }
+ 
+    return String(num);
+}
+
+
+export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boolean = true) {
+    // tv & num
+    const data = await getCloseTradesOfUsersAll();
+    const traders: any = data.traders;
+
+    const ret = new Map<String, {tradeVolume: number, tradeNum: number, newTrader:number, pnl: number, toTreasury:number, closeFee: number, openFee: number}>()
+
+    for (let trader of traders) {
+        for (let closeTrade of trader.closeTrades) {
+            const usdcSentToTrader = parseFloat(closeTrade.usdcSentToTrader.toString()) / 1e6;
+            const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
+            const leverage = parseInt(closeTrade.trade.leverage.toString())
+            const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
+            const tradingVolume= positionSizeUsdc * leverage;
+            const tradeTimestamp = Number(closeTrade.timestamp);
+            const date = new Date(tradeTimestamp * 1000);
+            let key = "";
+            if(isAggregate) {
+                key = `${pad0ToNum(date.getFullYear())}.${pad0ToNum(date.getMonth() + 1)}.${pad0ToNum(date.getDate())}`;
+            } else {
+                key = `${tradeTimestamp}-${closeTrade.id}`;
+            }
+
+            if(!ret.has(key)) {
+                ret.set(key, {tradeVolume: 0, tradeNum: 0, newTrader:0, pnl:0, toTreasury: 0, closeFee: 0, openFee: 0});
+            }
+            
+            const item = ret.get(key);
+            if(item){
+                // check new user
+                const isNewTrader = closeTrade.id.endsWith("-0")? 1: 0;
+
+                item.newTrader += isNewTrader;
+                item.tradeVolume += tradingVolume;
+                item.pnl += tradePnl;
+                item.tradeNum += 1;
+
+                let toTreasury = 0;
+                let closeFee = 0;
+                let feeP = 0.0004;
+                if(closeTrade.trade.pairIndex == 4 || closeTrade.trade.pairIndex == 5 || closeTrade.trade.pairIndex == 6) {
+                    feeP = 0.00006;
+                }
+                const openFee = tradingVolume * feeP;
+
+                // liquidation
+                if (-tradePnl > positionSizeUsdc * 0.9) {
+                    closeFee = positionSizeUsdc * 0.05;
+                    toTreasury = -tradePnl - closeFee;
+                } else {
+                    //close trade
+                    closeFee = tradingVolume * feeP;
+
+                    if(tradePnl + closeFee < 0  && tradePnl >= 0) {
+                        toTreasury = (tradePnl + closeFee);
+                    } else {
+                        toTreasury = -(tradePnl + closeFee);
+                    }
+                }
+                
+                if(isAggregate) {
+                    item.toTreasury += toTreasury;
+                    item.closeFee += closeFee;
+                    item.openFee += openFee;
+
+                    ret.set(key, item);
+                } else {
+                    ret.set(key, {tradeVolume: tradingVolume, tradeNum: 1, newTrader:isNewTrader, pnl:tradePnl, toTreasury, closeFee, openFee});
+                }
+            }
+        }
+    }
+
+    if(isCsv) {
+        const retCSV:string[] = [];
+        ret.forEach((value: {tradeVolume: number, tradeNum: number, newTrader:number, pnl: number, toTreasury:number, closeFee: number, openFee:number}, key: String) => {
+            retCSV.push(`${key},${value.tradeNum},${value.tradeVolume},${value.newTrader},${value.pnl},${value.toTreasury},${value.closeFee},${value.openFee}`)
+        });
+
+        retCSV.sort((a, b) => {	
+            const timestamp1 = a.split(',')[0];
+            const timestamp2 = b.split(',')[0];
+
+            if(timestamp1 < timestamp2)  return -1; 
+            else return 0;
+        })
+
+        return (isAggregate? "Date" : "timestamp-TradeId") + ",tradeNum,tradeVolume,newTrader,traderPnL,Treasury,CloseFee,OpenFee\n" + retCSV.join("\n");
+    }
+
+    const toObj = Object.fromEntries(ret);
+
+    return Object.keys(toObj).sort().reduce((result, key) => ((result[key] = toObj[key]), result), {});
+}
+
 async function makeRankingInfos() {
     const data = await getCloseTradesOfUsersAll();
     const traders: any = data.traders;
