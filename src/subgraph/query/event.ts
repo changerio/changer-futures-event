@@ -118,7 +118,6 @@ export const GetCloseTradesOfUsersForEvent = gql`
           positionSizeUsdc
           index
           leverage
-          initialPosToken
           pairIndex
           buy
           id

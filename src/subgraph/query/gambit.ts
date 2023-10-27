@@ -64,7 +64,6 @@ query GetOpenTradesOfUser($id: ID!) {
         index
         openPrice
         leverage
-        initialPosToken
         pairIndex
         positionSizeUsdc
         sl
@@ -92,7 +91,6 @@ query GetOpenTradesOfUser($id: ID!) {
         index
         openPrice
         leverage
-        initialPosToken
         pairIndex
         positionSizeUsdc
         sl
@@ -137,7 +135,6 @@ export const GetCloseTradesOfUsers = gql`
           positionSizeUsdc
           index
           leverage
-          initialPosToken
           pairIndex
           buy
           id
@@ -165,7 +162,6 @@ export const GetCloseTradesOfUsersWhereTimestamp = gql`
           positionSizeUsdc
           index
           leverage
-          initialPosToken
           pairIndex
           buy
           id
@@ -192,7 +188,6 @@ export const GetCloseTradesOfTraderOnlyProfit = gql`
           positionSizeUsdc
           index
           leverage
-          initialPosToken
           pairIndex
           buy
           id
@@ -240,7 +235,6 @@ export const GetCloseTradesWhereTimestamp = gql`
         positionSizeUsdc
         index
         leverage
-        initialPosToken
         pairIndex
         buy
         id

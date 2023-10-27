@@ -64,7 +64,6 @@ query GetOpenTradesOfUser($id: ID!) {
         index
         openPrice
         leverage
-        initialPosToken
         pairIndex
         positionSizeUsdc
         sl
@@ -92,7 +91,6 @@ query GetOpenTradesOfUser($id: ID!) {
         index
         openPrice
         leverage
-        initialPosToken
         pairIndex
         positionSizeUsdc
         sl
