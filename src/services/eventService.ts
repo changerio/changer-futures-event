@@ -85,7 +85,7 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
         for (let closeTrade of trader.closeTrades) {
             const usdcSentToTrader = parseFloat(closeTrade.usdcSentToTrader.toString()) / 1e6;
             const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
-            const leverage = parseInt(closeTrade.trade.leverage.toString())
+            const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
             const tradingVolume= positionSizeUsdc * leverage;
             const tradeTimestamp = Number(closeTrade.timestamp);
@@ -188,7 +188,7 @@ async function makeRankingInfos() {
         for (let closeTrade of trader.closeTrades) {
             const usdcSentToTrader = parseFloat(closeTrade.usdcSentToTrader.toString()) / 1e6;
             const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
-            const leverage = parseInt(closeTrade.trade.leverage.toString())
+            const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
             sumLeverage += leverage;
             sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
@@ -232,7 +232,7 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
         const address = closeTrade.trader.id;
         const usdcSentToTrader = parseFloat(closeTrade.usdcSentToTrader.toString()) / 1e6;
         const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
-        const leverage = parseInt(closeTrade.trade.leverage.toString())
+        const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
         const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
         const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
         const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
