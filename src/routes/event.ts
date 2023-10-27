@@ -10,6 +10,7 @@ import {
   upsertMainnetOpenEvent,
   getDailyCloseTrade
 } from "../services/eventService";
+import { getVaultEventUserData, getVaultEventUserList } from "../services/vaultEventService";
 
 /**
  * @swagger
@@ -30,6 +31,106 @@ function onlyFromLocal(req: Request) {
     host?.indexOf("localhost") !== -1
   );
 }
+
+
+/**
+ * @swagger
+ * /event/vault-open/:
+ *   get:
+ *    summary: 메인넷 오픈 이벤트 vault 예치
+ *    tags: [Event]
+ *    parameters:
+ *      - name: startDateStr
+ *        in: query
+ *        requires: true
+ *        description: 집계 시작일
+ *        example: '2023-08-01'
+ *        schema:
+ *          type: string
+ *      - name: endDateStr
+ *        in: query
+ *        requires: true
+ *        description: 집계 종료일
+ *        example: '2023-10-26'
+ *        schema:
+ *          type: string
+  *      - name: isCsv
+ *        in: query
+ *        requires: true
+ *        description: CSV(plain text) or Object
+ *        example: 'true'
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
+  if (onlyFromLocal(req)) {
+    const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+    const startDateStr: string = req.query.startDateStr as string;
+    const endDateStr: string = req.query.endDateStr as string;
+    const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
+
+    return res.status(200).send(ret);
+  } else {
+    return res.status(401).send();
+  }
+});
+
+/**
+ * @swagger
+ * /event/vault-open/user/:
+ *   get:
+ *    summary: 메인넷 오픈 이벤트 vault 예치 사용자 조회
+ *    tags: [Event]
+ *    parameters:
+ *      - name: address
+ *        in: query
+ *        requires: true
+ *        description: 사용자 주소
+ *        example: '0x90bdb45aabbe0e96c607fc6ba6dacb0944cf4313'
+ *        schema:
+ *          type: string
+ *      - name: startDateStr
+ *        in: query
+ *        requires: true
+ *        description: 집계 시작일
+ *        example: '2023-08-01'
+ *        schema:
+ *          type: string
+ *      - name: endDateStr
+ *        in: query
+ *        requires: true
+ *        description: 집계 종료일
+ *        example: '2023-10-26'
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
+  if (onlyFromLocal(req)) {
+    const address: string = req.query.address as string;
+    const startDateStr: string = req.query.startDateStr as string;
+    const endDateStr: string = req.query.endDateStr as string;
+    const ret = await getVaultEventUserData(address.toLowerCase(), startDateStr, endDateStr);
+    return res.status(200).send(ret);
+  } else {
+    return res.status(401).send();
+  }
+});
+
+
 /**
  * @swagger
  * /event/mainnet-open/tv/realtime/:

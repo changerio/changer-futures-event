@@ -226,7 +226,7 @@ export const GetCloseTradesOfTradersOnlyProfit = gql`
 
 export const GetCloseTradesWhereTimestamp = gql`
   query GetCloseTradesWhereTimestamp($first: Int!, $skip: Int!, $startTime: String!, $endTime: String!) {
-    closeTrades(first: 1000, skip: $skip, where: {timestamp_gte: $startTime, timestamp_lt: $endTime}) {
+    closeTrades(first: $first, skip: $skip, where: {timestamp_gte: $startTime, timestamp_lt: $endTime}) {
       id
       percentProfit
       usdcSentToTrader

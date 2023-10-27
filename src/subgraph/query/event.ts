@@ -129,3 +129,47 @@ export const GetCloseTradesOfUsersForEvent = gql`
     }
   }
 `;
+
+export const GetVaultDepositUser = gql`
+query GetVaultEventUser($id: ID!, $startTime: String!, $endTime: String!) {
+  trader(id: $id) {
+    id
+    depositShare
+    depositAsset
+    receiveShares(where: {timestamp_gte: $startTime, timestamp_lt: $endTime}) {
+      id
+      share
+      asset
+      timestamp
+    }
+    sendShares {
+      id
+      asset
+      share
+      timestamp
+    }
+  }
+}
+`
+
+export const GetVaultDepositUserList = gql`
+query GetVaultEventUser($first: Int!, $skip: Int!, $startTime: String!, $endTime: String!) {
+  traders(first: $first, skip: $skip) {
+    id
+    depositShare
+    depositAsset
+    receiveShares(where: {timestamp_gte: $startTime, timestamp_lt: $endTime}) {
+      id
+      share
+      asset
+      timestamp
+    }
+    sendShares {
+      id
+      asset
+      share
+      timestamp
+    }
+  }
+}
+`
