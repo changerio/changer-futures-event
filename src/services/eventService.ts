@@ -1,6 +1,13 @@
-import { getCloseTradesOfUsersAll, getCloseTradesWhereTimestampAll } from "../subgraph/gambit";
+import { EventGraphQL } from "../subgraph/gambit";
 import { getEventCache } from '../cache';
 import { logger } from "../utils/logger";
+import { SUBGRAPHS } from "../config/constants";
+
+const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrum);
+const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEra);
+const targetGraphQL = [arbitrumGraphQL, zksyncEraGraphQL];
+
+const START_TIMESTAMP = '1693485781';
 
 const PNL_CACHE_KEY = 'pnl_ranking';
 const TV_CACHE_KEY = 'tv_ranking';
@@ -33,7 +40,7 @@ function createRankingData(address: string, tradeCount: number, tv: number, pnl:
 }
 
 function isForex(pairIndex) {
-    return pairIndex == "4" || pairIndex == "5" || pairIndex == "6"
+    return pairIndex == "4" || pairIndex == "5" || pairIndex == "6";
 }
 
 export async function upsertMainnetOpenEvent() {
@@ -48,10 +55,12 @@ export async function upsertMainnetOpenEvent() {
 
     if (startTimestamp === 0 || !TOP_25_PNL_TRADERS || !TOP_25_TV_TRADERS || !OPEN_EVENT_RANKING_DATA || Object.keys(OPEN_EVENT_RANKING_DATA).length === 0) {
         logger.info(`No cache. Update all trades`);
-        rankingInfos = await makeRankingInfos();
+        const traders: any = await getTradersWithCloseTrades();
+        rankingInfos = await makeRankingInfos(traders);
     } else {
         logger.info(`Update only changes`);
-        rankingInfos = await makeRankingInfosWhereTimestamp(startTimestamp);
+        const closeTrades: any = await getCloseTrades('all', startTimestamp);
+        rankingInfos = await updateRankingInfosFromCloseTrades(closeTrades);
         if (rankingInfos.length == 0) {
             return { pnlRanking: TOP_25_PNL_TRADERS, tvRanking: TOP_25_TV_TRADERS };
         }
@@ -61,25 +70,15 @@ export async function upsertMainnetOpenEvent() {
 }
 
 export async function setMainnetOpenEvent() {
-    let rankingInfos: RankingInfo[] = await makeRankingInfos();
+    const traders: any = await getTradersWithCloseTrades();
+    let rankingInfos: RankingInfo[] = await makeRankingInfos(traders);
     return await saveMainnetOpenEvent(rankingInfos);
 }
 
-function pad0ToNum(num: number):string {
-    if(num > 0 && num < 10) {
-        return `0${num}`;
-    }
- 
-    return String(num);
-}
-
-
-export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boolean = true) {
+export async function getDailyCloseTrade(chain: string, isAggregate: boolean = true, isCsv: boolean = true) {
+    const traders: any = await getTradersWithCloseTrades(chain);
     // tv & num
-    const data = await getCloseTradesOfUsersAll();
-    const traders: any = data.traders;
-
-    const ret = new Map<String, {tradeVolume: number, tradeNum: number, newTrader:number, pnl: number, toTreasury:number, closeFee: number, openFee: number}>()
+    const ret = new Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>()
 
     for (let trader of traders) {
         for (let closeTrade of trader.closeTrades) {
@@ -87,24 +86,24 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
             const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
             const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
-            const tradingVolume= positionSizeUsdc * leverage;
+            const tradingVolume = positionSizeUsdc * leverage;
             const tradeTimestamp = Number(closeTrade.timestamp);
             const date = new Date(tradeTimestamp * 1000);
             let key = "";
-            if(isAggregate) {
+            if (isAggregate) {
                 key = `${pad0ToNum(date.getFullYear())}.${pad0ToNum(date.getMonth() + 1)}.${pad0ToNum(date.getDate())}`;
             } else {
                 key = `${tradeTimestamp}-${closeTrade.id}`;
             }
 
-            if(!ret.has(key)) {
-                ret.set(key, {tradeVolume: 0, tradeNum: 0, newTrader:0, pnl:0, toTreasury: 0, closeFee: 0, openFee: 0});
+            if (!ret.has(key)) {
+                ret.set(key, { tradeVolume: 0, tradeNum: 0, newTrader: 0, pnl: 0, toTreasury: 0, closeFee: 0, openFee: 0 });
             }
-            
+
             const item = ret.get(key);
-            if(item){
+            if (item) {
                 // check new user
-                const isNewTrader = closeTrade.id.endsWith("-0")? 1: 0;
+                const isNewTrader = closeTrade.id.endsWith("-0") ? 1 : 0;
 
                 item.newTrader += isNewTrader;
                 item.tradeVolume += tradingVolume;
@@ -114,7 +113,7 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
                 let toTreasury = 0;
                 let closeFee = 0;
                 let feeP = 0.0004;
-                if(closeTrade.trade.pairIndex == 4 || closeTrade.trade.pairIndex == 5 || closeTrade.trade.pairIndex == 6) {
+                if (closeTrade.trade.pairIndex == 4 || closeTrade.trade.pairIndex == 5 || closeTrade.trade.pairIndex == 6) {
                     feeP = 0.00006;
                 }
                 const openFee = tradingVolume * feeP;
@@ -127,41 +126,41 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
                     //close trade
                     closeFee = tradingVolume * feeP;
 
-                    if(tradePnl + closeFee < 0  && tradePnl >= 0) {
+                    if (tradePnl + closeFee < 0 && tradePnl >= 0) {
                         toTreasury = (tradePnl + closeFee);
                     } else {
                         toTreasury = -(tradePnl + closeFee);
                     }
                 }
-                
-                if(isAggregate) {
+
+                if (isAggregate) {
                     item.toTreasury += toTreasury;
                     item.closeFee += closeFee;
                     item.openFee += openFee;
 
                     ret.set(key, item);
                 } else {
-                    ret.set(key, {tradeVolume: tradingVolume, tradeNum: 1, newTrader:isNewTrader, pnl:tradePnl, toTreasury, closeFee, openFee});
+                    ret.set(key, { tradeVolume: tradingVolume, tradeNum: 1, newTrader: isNewTrader, pnl: tradePnl, toTreasury, closeFee, openFee });
                 }
             }
         }
     }
 
-    if(isCsv) {
-        const retCSV:string[] = [];
-        ret.forEach((value: {tradeVolume: number, tradeNum: number, newTrader:number, pnl: number, toTreasury:number, closeFee: number, openFee:number}, key: String) => {
+    if (isCsv) {
+        const retCSV: string[] = [];
+        ret.forEach((value: { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }, key: String) => {
             retCSV.push(`${key},${value.tradeNum},${value.tradeVolume},${value.newTrader},${value.pnl},${value.toTreasury},${value.closeFee},${value.openFee}`)
         });
 
-        retCSV.sort((a, b) => {	
+        retCSV.sort((a, b) => {
             const timestamp1 = a.split(',')[0];
             const timestamp2 = b.split(',')[0];
 
-            if(timestamp1 < timestamp2)  return -1; 
+            if (timestamp1 < timestamp2) return -1;
             else return 0;
         })
 
-        return (isAggregate? "Date" : "timestamp-TradeId") + ",tradeNum,tradeVolume,newTrader,traderPnL,Treasury,CloseFee,OpenFee\n" + retCSV.join("\n");
+        return (isAggregate ? "Date" : "timestamp-TradeId") + ",tradeNum,tradeVolume,newTrader,traderPnL,Treasury,CloseFee,OpenFee\n" + retCSV.join("\n");
     }
 
     const toObj = Object.fromEntries(ret);
@@ -169,9 +168,7 @@ export async function getDailyCloseTrade(isAggregate:boolean = true, isCsv:boole
     return Object.keys(toObj).sort().reduce((result, key) => ((result[key] = toObj[key]), result), {});
 }
 
-async function makeRankingInfos() {
-    const data = await getCloseTradesOfUsersAll();
-    const traders: any = data.traders;
+async function makeRankingInfos(traders) {
     let totalTv = 0;
     let totalTradeCount = 0;
 
@@ -192,7 +189,7 @@ async function makeRankingInfos() {
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
             sumLeverage += leverage;
             sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-            tv += isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
+            tv += isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // forex 0.006 | cryto 0.04
             // tv += positionSizeUsdc * leverage; // origin
             pnl += tradePnl;
             const tradeTimestamp = Number(closeTrade.timestamp);
@@ -215,14 +212,48 @@ async function makeRankingInfos() {
     return rankingInfos;
 }
 
-async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
-    const endTime: number = Math.round(Date.now() / 1000);
-    const data = await getCloseTradesWhereTimestampAll(startTimestamp, endTime);
-    if (!data.hasOwnProperty('closeTrades')) {
-        logger.error(`Failed to get data from subgraph.`);
+async function makeRankingInfosFromCloseTrades(closeTrades) {
+    logger.info(`closeTrades count : ${closeTrades.length}`);
+    if (closeTrades.length == 0) {
+        logger.info(`Number of closeTrades is zero.`);
+        return [];
     }
-    const closeTrades: any = data.closeTrades;
-    logger.info(`closeTrades number : ${closeTrades.length}`);
+
+    let rankingMap = {};
+    for (let closeTrade of closeTrades) {
+        const address = closeTrade.trader.id;
+        const usdcSentToTrader = parseFloat(closeTrade.usdcSentToTrader.toString()) / 1e6;
+        const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
+        const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
+        const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
+        const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
+        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
+        const pnl = tradePnl;
+
+        if (!rankingMap.hasOwnProperty(address)) {
+            rankingMap[address] = createRankingData(address, 0, 0, 0, 0, 0, 0);
+        }
+
+        const originTradeCount = rankingMap[address].tradeCount;
+        rankingMap[address].tradeCount += 1;
+        rankingMap[address].tv += tv;
+        rankingMap[address].pnl += pnl;
+        rankingMap[address].avgLeverage = (rankingMap[address].avgLeverage * originTradeCount + leverage) / (originTradeCount + 1);
+        rankingMap[address].avgPnlPercent = (rankingMap[address].avgPnlPercent * originTradeCount + pnlPercent) / (originTradeCount + 1);
+        rankingMap[address].sumPnlPercent += pnlPercent;
+        const tradeTimestamp = Number(closeTrade.timestamp);
+
+        if (maxCloseTimestamp < tradeTimestamp) {
+            maxCloseTimestamp = tradeTimestamp;
+        }
+    }
+
+    const rankingInfos: RankingInfo[] = Object.values(rankingMap);
+    return rankingInfos;
+}
+
+async function updateRankingInfosFromCloseTrades(closeTrades) {
+    logger.info(`closeTrades count : ${closeTrades.length}`);
     if (closeTrades.length == 0) {
         logger.info(`Number of closeTrades is zero.`);
         return [];
@@ -260,8 +291,15 @@ async function makeRankingInfosWhereTimestamp(startTimestamp: number) {
     return rankingInfos;
 }
 
-export async function getRankingOfTradingVolumeRealTime() {
-    let rankingInfos: RankingInfo[] = await makeRankingInfos();
+export async function getRankingOfTradingVolumeRealTime(chain: string, startTimestamp: number, endTimestamp: number) {
+    let rankingInfos: RankingInfo[];
+    if (startTimestamp != -1) {
+        const closeTrades: any = await getCloseTrades(chain, startTimestamp, endTimestamp);
+        rankingInfos = await makeRankingInfosFromCloseTrades(closeTrades);
+    } else {
+        const traders: any = await getTradersWithCloseTrades(chain);
+        rankingInfos = await makeRankingInfos(traders);
+    }
 
     const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv).map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
     const topTrader = tvRanking.slice(0, 100);
@@ -269,8 +307,15 @@ export async function getRankingOfTradingVolumeRealTime() {
     return topTrader;
 }
 
-export async function getRankingOfPnlRealTime() {
-    let rankingInfos: RankingInfo[] = await makeRankingInfos();
+export async function getRankingOfPnlRealTime(chain: string, startTimestamp: number, endTimestamp: number) {
+    let rankingInfos: RankingInfo[];
+    if (startTimestamp != -1) {
+        const closeTrades: any = await getCloseTrades(chain, startTimestamp, endTimestamp);
+        rankingInfos = await makeRankingInfosFromCloseTrades(closeTrades);
+    } else {
+        const traders: any = await getTradersWithCloseTrades(chain);
+        rankingInfos = await makeRankingInfos(traders);
+    }
 
     const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent).map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
     const topTrader = pnlRanking.slice(0, 100);
@@ -337,5 +382,104 @@ export async function getRankingOfTrader(address: string) {
         }
     }
 
-    return OPEN_EVENT_RANKING_DATA[address];
+    return OPEN_EVENT_RANKING_DATA.hasOwnProperty(address) ? OPEN_EVENT_RANKING_DATA[address] : 'None';
+}
+
+// FIXME START_TIMESTAMP
+async function getTradersWithCloseTrades(chain: string = 'all', startTime: string = START_TIMESTAMP, endTime: string = Math.round(Date.now() / 1000).toString()) {
+    if (chain === 'arbitrum') {
+        const data = await arbitrumGraphQL.getCloseTradesOfUsersAll(startTime, endTime);
+        const { traders } = data;
+        return traders;
+    } else if (chain === 'zksyncera') {
+        const data = await zksyncEraGraphQL.getCloseTradesOfUsersAll(startTime, endTime);
+        const { traders } = data;
+        return traders;
+    } else {
+        const promises = targetGraphQL.map((graphQL) => {
+            return graphQL.getCloseTradesOfUsersAll(startTime, endTime);
+        })
+
+        const results = await Promise.all(promises);
+
+        const traders = mergeTraders(...results);
+        return traders;
+    }
+}
+
+async function getCloseTrades(chain: string = 'all', startTimestamp: number = 0, endTimestamp: number = Math.round(Date.now() / 1000)) {
+    logger.info(`[getCloseTrades] ${chain}, ${startTimestamp}, ${endTimestamp}`);
+    if (chain === 'arbitrum') {
+        const data = await arbitrumGraphQL.getCloseTradesWhereTimestampAll(startTimestamp, endTimestamp);
+        const { closeTrades } = data;
+        return closeTrades;
+    } else if (chain === 'zksyncera') {
+        const data = await zksyncEraGraphQL.getCloseTradesWhereTimestampAll(startTimestamp, endTimestamp);
+        const { closeTrades } = data;
+        return closeTrades;
+    } else {
+        const promises = targetGraphQL.map((graphQL) => {
+            return graphQL.getCloseTradesWhereTimestampAll(startTimestamp, endTimestamp)
+        })
+        const results = await Promise.all(promises);
+        const closeTrades: any = mergeCloseTrades(...results);
+        return closeTrades;
+    }
+}
+
+function mergeTraders(...datas: any[]): any {
+    const mergedTraders: any = [];
+    const traderMap = new Map<string, any>();
+
+    for (const data of datas) {
+        if (!data || !data.traders) {
+            continue;
+        }
+        for (const trader of data.traders) {
+            const traderId = trader.id;
+            if (!traderMap.has(traderId)) {
+                traderMap.set(traderId, trader);
+            } else {
+                traderMap.get(traderId).closeTrades.push(...trader.closeTrades);
+            }
+        }
+    }
+
+    for (const trader of traderMap.values()) {
+        mergedTraders.push(trader);
+    }
+
+    return mergedTraders;
+}
+
+function mergeCloseTrades(...datas: any[]): any {
+    const mergedCloseTrades: any[] = [];
+
+    const closeTradeMap = new Map<string, any>();
+
+    for (const data of datas) {
+        if (!data || !data.closeTrades) {
+            continue;
+        }
+        for (const closeTrade of data.closeTrades) {
+            const tradeId = closeTrade.id;
+            if (!closeTradeMap.has(tradeId)) {
+                closeTradeMap.set(tradeId, closeTrade);
+            }
+        }
+    }
+
+    for (const closeTrade of closeTradeMap.values()) {
+        mergedCloseTrades.push(closeTrade);
+    }
+
+    return mergedCloseTrades;
+}
+
+function pad0ToNum(num: number): string {
+    if (num > 0 && num < 10) {
+        return `0${num}`;
+    }
+
+    return String(num);
 }

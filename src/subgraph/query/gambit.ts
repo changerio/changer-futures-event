@@ -120,11 +120,11 @@ export const GetCloseTradesOfUser = gql`
 `;
 
 export const GetCloseTradesOfUsers = gql`
-  query GetCloseTradesOfUsers($first: Int!, $skip: Int!) {
+  query GetCloseTradesOfUsers($first: Int!, $skip: Int!, $startTime: String!, $endTime: String!) {
     traders (first: $first, skip: $skip) {
       closeTradeCount
       id
-      closeTrades(first: 1000, where: {reason_not: MARKET_OPEN_CANCELED}) {
+      closeTrades(first: 1000, where: {reason_not: MARKET_OPEN_CANCELED, timestamp_gte: $startTime, timestamp_lt: $endTime}) {
         id
         percentProfit
         usdcSentToTrader

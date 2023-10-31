@@ -1,8 +1,12 @@
 import { logger } from "../utils/logger";
-import { getVaultDepositUser, getVaultDepositUserAll } from "../subgraph/event";
+import { EventGraphQL } from "../subgraph/event";
+import { SUBGRAPHS } from "../config/constants";
+
+// const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrum);
+const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEra);
 
 export async function getVaultEventUserData(address: string, startDateStr = '2023-08-01', endDateStr = '2023-10-26') {
-    const data = await getVaultDepositUser(address);
+    const data = await zksyncEraGraphQL.getVaultDepositUser(address);
     if (!data.hasOwnProperty('trader')) {
         return [];
     }
@@ -50,7 +54,7 @@ export async function getVaultEventUserList(startDateStr = '2023-08-01', endDate
 
 export async function getVaultDepositUserList(startDateStr = '2023-08-01', endDateStr = '2023-10-26') {
     const ret = {};
-    const traders = await getVaultDepositUserAll();
+    const traders = await zksyncEraGraphQL.getVaultDepositUserAll();
 
     logger.info(`traders count : ${traders.length}`);
     if (traders.length == 0) {
@@ -194,7 +198,7 @@ function deepCopy(obj: any): any {
     }
 
     if (obj instanceof Date) {
-        return new Date(obj); 
+        return new Date(obj);
     }
 
     if (Array.isArray(obj)) {

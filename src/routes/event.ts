@@ -135,8 +135,30 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  * @swagger
  * /event/mainnet-open/tv/realtime/:
  *   get:
- *    summary: 메인넷 win rate competition (trading volume) 실시간 조회
+ *    summary: 메인넷 win rate competition (trading volume) 실시간 조회 - 데이터 업데이트 안됨
  *    tags: [Event]
+ *    parameters:
+ *      - name: chain
+ *        in: query
+ *        requires: false
+ *        description: zksyncEra | arbitrum | all
+ *        example: 'zksyncEra'
+ *        schema:
+ *          type: string
+ *      - name: startTimestamp
+ *        in: query
+ *        requires: false
+ *        description: close trade 시작
+ *        example: '1696121278'
+ *        schema:
+ *          type: string
+ *      - name: endTimestamp
+ *        in: query
+ *        requires: false
+ *        description: close trade 종료
+ *        example: '1698626878'
+ *        schema:
+ *          type: string
  *    responses:
  *      200:
  *        description: OK
@@ -145,25 +167,48 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *             schema:
  *              type: object
  */
-eventRouter.get(
-  "/mainnet-open/tv/realtime",
-  async (req: Request, res: Response) => {
-    if (onlyFromLocal(req)) {
-      const ret = await getRankingOfTradingVolumeRealTime();
+eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response) => {
+  if (onlyFromLocal(req)) {
+    const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
+    const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
+    const endTimestamp: number = parseInt(req.query.endTimestamp as string);
+    const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp);
 
-      return res.status(200).send(ret);
-    } else {
-      return res.status(401).send();
-    }
+    return res.status(200).send(ret);
+  } else {
+    return res.status(401).send();
   }
+}
 );
 
 /**
  * @swagger
  * /event/mainnet-open/pnl/realtime/:
  *   get:
- *    summary: 메인넷 win rate competition (PNL) 실시간 조회
+ *    summary: 메인넷 win rate competition (PNL) 실시간 조회 - 데이터 업데이트 안됨
  *    tags: [Event]
+ *    parameters:
+ *      - name: chain
+ *        in: query
+ *        requires: false
+ *        description: zksyncEra | arbitrum | all
+ *        example: 'zksyncEra'
+ *        schema:
+ *          type: string
+ *      - name: startTimestamp
+ *        in: query
+ *        requires: false
+ *        description: close trade 시작
+ *        example: '1696121278'
+ *        schema:
+ *          type: string
+ *      - name: endTimestamp
+ *        in: query
+ *        requires: false
+ *        description: close trade 종료
+ *        example: '1698626878'
+ *        schema:
+ *          type: string
  *    responses:
  *      200:
  *        description: OK
@@ -172,18 +217,18 @@ eventRouter.get(
  *             schema:
  *              type: object
  */
-eventRouter.get(
-  "/mainnet-open/pnl/realtime",
-  async (req: Request, res: Response) => {
-    if (onlyFromLocal(req)) {
-      const ret = await getRankingOfPnlRealTime();
+eventRouter.get("/mainnet-open/pnl/realtime", async (req: Request, res: Response) => {
+  if (onlyFromLocal(req)) {
+    const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
+    const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
+    const endTimestamp: number = parseInt(req.query.endTimestamp as string);
+    const ret = await getRankingOfPnlRealTime(chain, startTimestamp, endTimestamp);
 
-      return res.status(200).send(ret);
-    } else {
-      return res.status(401).send();
-    }
+    return res.status(200).send(ret);
+  } else {
+    return res.status(401).send();
   }
-);
+});
 
 /**
  * @swagger
@@ -226,6 +271,13 @@ eventRouter.get("/mainnet-open/tv", async (req: Request, res: Response) => {
  *        example: 'true'
  *        schema:
  *          type: string
+ *      - name: chain
+ *        in: query
+ *        requires: false
+ *        description: zksyncEra | arbitrum | all
+ *        example: 'zksyncEra'
+ *        schema:
+ *          type: string
  *    responses:
  *      200:
  *        description: OK
@@ -235,13 +287,14 @@ eventRouter.get("/mainnet-open/tv", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/mainnet-open/stat", async (req: Request, res: Response) => {
-    const isAggregate: boolean = (req.query.isAggregate as string).toLowerCase() === "true" ? true : false;
-    const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+  const isAggregate: boolean = (req.query.isAggregate as string).toLowerCase() === "true" ? true : false;
+  const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+  const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
 
-    const ret = await getDailyCloseTrade(isAggregate, isCsv);
+  const ret = await getDailyCloseTrade(chain, isAggregate, isCsv);
 
-    return res.status(200).send(ret);
-  }
+  return res.status(200).send(ret);
+}
 );
 
 
@@ -269,7 +322,7 @@ eventRouter.get("/mainnet-open/pnl", async (req: Request, res: Response) => {
  * @swagger
  * /event/mainnet-open/user/:
  *   get:
- *    summary: 메인넷 오픈 이벤트 사용자 정보 조회
+ *    summary: 메인넷 오픈 이벤트 사용자 정보 조회 (cache) - 데이터 없으면 setting
  *    tags: [Event]
  *    parameters:
  *      - name: address
