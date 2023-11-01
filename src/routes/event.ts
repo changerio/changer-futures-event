@@ -165,7 +165,7 @@ eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response)
   const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp);
 
   return res.status(200).send(ret);
-);
+});
 
 /**
  * @swagger
