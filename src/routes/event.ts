@@ -32,7 +32,6 @@ function onlyFromLocal(req: Request) {
   );
 }
 
-
 /**
  * @swagger
  * /event/vault-open/:
@@ -70,16 +69,12 @@ function onlyFromLocal(req: Request) {
  *              type: object
  */
 eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
-  if (onlyFromLocal(req)) {
     const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
     const startDateStr: string = req.query.startDateStr as string;
     const endDateStr: string = req.query.endDateStr as string;
     const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
 
     return res.status(200).send(ret);
-  } else {
-    return res.status(401).send();
-  }
 });
 
 /**
@@ -119,15 +114,11 @@ eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
-  if (onlyFromLocal(req)) {
-    const address: string = req.query.address as string;
-    const startDateStr: string = req.query.startDateStr as string;
-    const endDateStr: string = req.query.endDateStr as string;
-    const ret = await getVaultEventUserData(address.toLowerCase(), startDateStr, endDateStr);
-    return res.status(200).send(ret);
-  } else {
-    return res.status(401).send();
-  }
+  const address: string = req.query.address as string;
+  const startDateStr: string = req.query.startDateStr as string;
+  const endDateStr: string = req.query.endDateStr as string;
+  const ret = await getVaultEventUserData(address.toLowerCase(), startDateStr, endDateStr);
+  return res.status(200).send(ret);
 });
 
 
@@ -168,17 +159,12 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response) => {
-  if (onlyFromLocal(req)) {
-    const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
-    const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
-    const endTimestamp: number = parseInt(req.query.endTimestamp as string);
-    const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp);
+  const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
+  const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
+  const endTimestamp: number = parseInt(req.query.endTimestamp as string);
+  const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp);
 
-    return res.status(200).send(ret);
-  } else {
-    return res.status(401).send();
-  }
-}
+  return res.status(200).send(ret);
 );
 
 /**
@@ -218,16 +204,12 @@ eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response)
  *              type: object
  */
 eventRouter.get("/mainnet-open/pnl/realtime", async (req: Request, res: Response) => {
-  if (onlyFromLocal(req)) {
-    const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
-    const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
-    const endTimestamp: number = parseInt(req.query.endTimestamp as string);
-    const ret = await getRankingOfPnlRealTime(chain, startTimestamp, endTimestamp);
+  const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
+  const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
+  const endTimestamp: number = parseInt(req.query.endTimestamp as string);
+  const ret = await getRankingOfPnlRealTime(chain, startTimestamp, endTimestamp);
 
-    return res.status(200).send(ret);
-  } else {
-    return res.status(401).send();
-  }
+  return res.status(200).send(ret);
 });
 
 /**
