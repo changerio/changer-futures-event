@@ -19,7 +19,7 @@ app.use(express.static(path.join(__dirname, "../public"), { maxAge: 31557600000 
 app.use(cors())
 
 loadSwagger(app);
-// loadWorker();
+loadWorker();
 
 // router
 app.use("/event", eventRouter);
