@@ -3,12 +3,12 @@ import { getEventCache } from '../cache';
 import { logger } from "../utils/logger";
 import { SUBGRAPHS } from "../config/constants";
 
-const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEraGoerli); // TODO arbitrum
-const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEra); // TODO zksyncEra
+const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrumGoerli); // TODO arbitrum
+const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEraGoerli); // TODO zksyncEra
 const targetGraphQL = [arbitrumGraphQL, zksyncEraGraphQL];
 logger.info(`trading event target: \n- zksyncEraGoerli: ${SUBGRAPHS.zksyncEraGoerli}\n- arbitrumGoerli: ${SUBGRAPHS.arbitrumGoerli}`);
 
-const START_TIMESTAMP = '1698828275';
+const START_TIMESTAMP = '1698828091';
 
 const PNL_CACHE_KEY = 'pnl_ranking';
 const TV_CACHE_KEY = 'tv_ranking';
