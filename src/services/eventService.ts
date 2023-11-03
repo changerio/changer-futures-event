@@ -3,17 +3,18 @@ import { getEventCache } from '../cache';
 import { logger } from "../utils/logger";
 import { SUBGRAPHS } from "../config/constants";
 
-const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrumGoerli); // TODO arbitrum
-const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEraGoerli); // TODO zksyncEra
+const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrum);
+const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEra);
 const targetGraphQL = [arbitrumGraphQL, zksyncEraGraphQL];
-logger.info(`trading event target: \n- zksyncEraGoerli: ${SUBGRAPHS.zksyncEraGoerli}\n- arbitrumGoerli: ${SUBGRAPHS.arbitrumGoerli}`);
+logger.info(`trading event target: \n- arbitrum: ${SUBGRAPHS.arbitrum}\n- zksyncEra: ${SUBGRAPHS.zksyncEra}`);
 
-const START_TIMESTAMP = '1698828091';
+const START_TIMESTAMP = '1698969600'; // 2023년 11월 3일 0시 0분 0초 (GMT)
+const END_TIMESTAMP = '1704412800'; // 2024년 1월 4일 23시 59분 59초 (GMT)
 
 const PNL_CACHE_KEY = 'pnl_ranking';
 const TV_CACHE_KEY = 'tv_ranking';
 const RANKING_CACHE_KEY = 'ranking_data';
-const END_TIMESTAMP = 'ranking_timestamp'; // 마지막 endtime
+const END_TIMESTAMP_KEY = 'ranking_timestamp'; // 마지막 endtime
 const cache = getEventCache();
 let TOP_25_PNL_TRADERS: RankingInfo[] = [];
 let TOP_25_TV_TRADERS: RankingInfo[] = [];
@@ -46,7 +47,7 @@ function isForex(pairIndex) {
 
 export async function upsertMainnetOpenEvent() {
     let rankingInfos: RankingInfo[];
-    let startTimestamp: number = await cache.get(END_TIMESTAMP) ?? 0;
+    let startTimestamp: number = await cache.get(END_TIMESTAMP_KEY) ?? 0;
     if (!TOP_25_PNL_TRADERS || !TOP_25_TV_TRADERS || !OPEN_EVENT_RANKING_DATA || Object.keys(OPEN_EVENT_RANKING_DATA).length === 0) {
         TOP_25_PNL_TRADERS = await cache.get(PNL_CACHE_KEY);
         TOP_25_TV_TRADERS = await cache.get(TV_CACHE_KEY);
@@ -190,7 +191,7 @@ async function makeRankingInfos(traders) {
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
             sumLeverage += leverage;
             sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-            tv += isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // forex 0.006 | cryto 0.04
+            tv += isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.15) : positionSizeUsdc * leverage; // forex 0.006 | cryto 0.04
             // tv += positionSizeUsdc * leverage; // origin
             pnl += tradePnl;
             const tradeTimestamp = Number(closeTrade.timestamp);
@@ -228,7 +229,7 @@ async function makeRankingInfosFromCloseTrades(closeTrades) {
         const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
         const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
         const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
+        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.15) : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
         const pnl = tradePnl;
 
         if (!rankingMap.hasOwnProperty(address)) {
@@ -267,7 +268,7 @@ async function updateRankingInfosFromCloseTrades(closeTrades) {
         const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
         const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
         const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * 0.15) * leverage : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
+        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.15) : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
         const pnl = tradePnl;
 
         if (!OPEN_EVENT_RANKING_DATA.hasOwnProperty(address)) {
@@ -336,7 +337,7 @@ async function saveMainnetOpenEvent(rankingInfos: RankingInfo[]) {
         return acc;
     }, {});
 
-    await cache.set(END_TIMESTAMP, maxCloseTimestamp + 1);
+    await cache.set(END_TIMESTAMP_KEY, maxCloseTimestamp + 1);
     await cache.set(PNL_CACHE_KEY, TOP_25_PNL_TRADERS);
     await cache.set(TV_CACHE_KEY, TOP_25_TV_TRADERS);
     await cache.set(RANKING_CACHE_KEY, OPEN_EVENT_RANKING_DATA);
@@ -386,8 +387,7 @@ export async function getRankingOfTrader(address: string) {
     return OPEN_EVENT_RANKING_DATA.hasOwnProperty(address) ? OPEN_EVENT_RANKING_DATA[address] : 'None';
 }
 
-// FIXME START_TIMESTAMP
-async function getTradersWithCloseTrades(chain: string = 'all', startTime: string = START_TIMESTAMP, endTime: string = Math.round(Date.now() / 1000).toString()) {
+async function getTradersWithCloseTrades(chain: string = 'all', startTime: string = START_TIMESTAMP, endTime: string = END_TIMESTAMP) {
     if (chain === 'arbitrum') {
         const data = await arbitrumGraphQL.getCloseTradesOfUsersAll(startTime, endTime);
         const { traders } = data;
