@@ -39,7 +39,7 @@ function createRankingData(address: string, tradeCount: number, tv: number, pnl:
 }
 
 function isForex(pairIndex) {
-    return pairIndex == "4" || pairIndex == "5" || pairIndex == "6";
+    return pairIndex == "4" || pairIndex == "5" || pairIndex == "6" || pairIndex == "7";
 }
 
 export async function upsertMainnetOpenEvent() {

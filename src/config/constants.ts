@@ -8,7 +8,7 @@ export enum SUBGRAPHS {
   hardhat = 'http://127.0.0.1:8000/subgraphs/name/changerio/gambit',
 
   zksyncEraGoerli = 'https://api.studio.thegraph.com/proxy/47348/gambit-zksync-alpha/version/latest',
-  arbitrumGoerli = 'https://api.studio.thegraph.com/proxy/14405/gambit-arbi-goerli-1/v0.0.1',
+  arbitrumGoerli = 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum-goerli/version/latest',
 
   zksyncEra = 'https://api.studio.thegraph.com/query/56479/gambit-zksync/v0.1.20-rc1', // https://service.gambit.trade/subgraphs/name/changerio/gambit
   arbitrum = 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum/version/latest'
