@@ -20,15 +20,12 @@ let TOP_25_PNL_TRADERS: RankingInfo[] = [];
 let TOP_25_TV_TRADERS: RankingInfo[] = [];
 let OPEN_EVENT_RANKING_DATA: { [key: string]: RankingInfo } = {};
 let maxCloseTimestamp = 0;
-// let OPEN_EVENT_RANKING_DATA: Record<string, RankingInfo> = {};
 
 interface RankingInfo {
     address: string,
     tradeCount: number,
     tv: number,
     pnl: number,
-    // onlyProfit: number,
-    // onlyLoss: number,
     avgLeverage: number,
     avgPnlPercent: number,
     sumPnlPercent: number,
@@ -78,7 +75,7 @@ export async function setMainnetOpenEvent() {
 }
 
 export async function getDailyCloseTrade(chain: string, isAggregate: boolean = true, isCsv: boolean = true) {
-    const traders: any = await getTradersWithCloseTrades(chain);
+    const traders: any = await getTradersWithCloseTrades(chain, '0', Math.round(Date.now() / 1000).toString());
     // tv & num
     const ret = new Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>()
 

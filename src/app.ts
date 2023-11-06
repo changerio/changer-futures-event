@@ -5,6 +5,7 @@ import path from "path";
 import { logger } from "./utils/logger"
 import { loadSwagger } from "./swagger";
 import { eventRouter } from "./routes/event";
+import { statRouter } from "./routes/stat";
 import { loadWorker } from "./worker/updateMainnetOpenEventRanking";
 
 // Create Express server
@@ -22,6 +23,7 @@ loadSwagger(app);
 loadWorker();
 
 // router
+app.use("/stat", statRouter);
 app.use("/event", eventRouter);
 
 export default app;

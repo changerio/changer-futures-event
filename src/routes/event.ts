@@ -16,7 +16,7 @@ import { getVaultEventUserData, getVaultEventUserList } from "../services/vaultE
  * @swagger
  * tags:
  *   name: Event
- *   description: 이벤트 조회용 API
+ *   description: event API
  */
 const eventRouter = Router();
 
@@ -42,7 +42,7 @@ function onlyFromLocal(req: Request) {
  *      - name: startDateStr
  *        in: query
  *        requires: true
- *        description: 집계 시작일
+ *        description: 집계 시작일 (예치 시작 기간은 처음부터)
  *        example: '2023-08-01'
  *        schema:
  *          type: string
@@ -94,7 +94,7 @@ eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
  *      - name: startDateStr
  *        in: query
  *        requires: true
- *        description: 집계 시작일
+ *        description: 집계 시작일 (예치 시작 기간은 처음부터)
  *        example: '2023-08-01'
  *        schema:
  *          type: string
