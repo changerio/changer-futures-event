@@ -1,5 +1,5 @@
 import { Request, Response, Router } from "express";
-
+import { ALL_NETWORK_STR } from "../config/constants";
 import {
   getDailyCloseTrade
 } from "../services/eventService";
@@ -51,7 +51,7 @@ const statRouter = Router();
 statRouter.get("/day-trade", async (req: Request, res: Response) => {
   const isAggregate: boolean = (req.query.isAggregate as string).toLowerCase() === "true" ? true : false;
   const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
-  const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
+  const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
 
   const ret = await getDailyCloseTrade(chain, isAggregate, isCsv);
 

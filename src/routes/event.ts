@@ -10,6 +10,7 @@ import {
   upsertMainnetOpenEvent
 } from "../services/eventService";
 import { getVaultEventUserData, getVaultEventUserList } from "../services/vaultEventService";
+import { ALL_NETWORK_STR } from "../config/constants";
 
 /**
  * @swagger
@@ -158,7 +159,7 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response) => {
-  const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
+  const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
   const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
   const endTimestamp: number = parseInt(req.query.endTimestamp as string);
   const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp);
@@ -203,7 +204,7 @@ eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response)
  *              type: object
  */
 eventRouter.get("/mainnet-open/pnl/realtime", async (req: Request, res: Response) => {
-  const chain: string = (req.query.chain as string).toLowerCase() ?? 'all';
+  const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
   const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
   const endTimestamp: number = parseInt(req.query.endTimestamp as string);
   const ret = await getRankingOfPnlRealTime(chain, startTimestamp, endTimestamp);
