@@ -1,6 +1,7 @@
 import { EventGraphQL } from "../subgraph/gambit";
 import { getEventCache } from '../cache';
 import { logger } from "../utils/logger";
+import { getOpenFeeP, getCloseFeeP } from "../utils/fee";
 import { SUBGRAPHS, ARBITRUM_NETWORK_STR, ZKSYNCERA_NETWORK_STR, ALL_NETWORK_STR } from "../config/constants";
 
 const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrum);
@@ -109,12 +110,9 @@ function _parseCloseTrades(network: string, traders, isAggregate:boolean, ret:Ma
 
                 let toTreasury = 0;
                 let closeFee = 0;
-                let openFeeP = 0.0004;
-                let closeFeeP = network === ARBITRUM_NETWORK_STR ? 0.0006: 0.0004;
-                if (closeTrade.trade.pairIndex == 4 || closeTrade.trade.pairIndex == 5 || closeTrade.trade.pairIndex == 6) {
-                    openFeeP = 0.0006;
-                    closeFeeP = network === ARBITRUM_NETWORK_STR ?  0.00009 : 0.00006;
-                }
+                let openFeeP = getOpenFeeP(network, closeTrade);
+                let closeFeeP = getCloseFeeP(network, closeTrade);
+                
                 const openFee = tradingVolume * openFeeP;
 
                 // liquidation
