@@ -24,32 +24,25 @@ export async function getVaultEventUserList(startDateStr = '2023-08-01', endDate
     const ret = {};
     const depositData = await getVaultDepositUserList(startDateStr, endDateStr);
 
-    if (isCsv) {
-        const retCSV: string[] = [];
-        for (let address of Object.keys(depositData)) {
-            let data = depositData[address];
-
-            const { staking1Deposit, staking2Deposit } = calcStakingDeposit(data, startDateStr, endDateStr);
-
-            if (staking1Deposit > 0) {
-                ret[address] = { staking1Deposit, staking2Deposit }
-            }
-
-            retCSV.push(`${address},${staking1Deposit},${staking2Deposit}`)
-        }
-        return "address,staking1Deposit,staking2Deposit\n" + retCSV.join("\n");
-    }
+    const retCSV: string[] = [];
     for (let address of Object.keys(depositData)) {
         let data = depositData[address];
 
         const { staking1Deposit, staking2Deposit } = calcStakingDeposit(data, startDateStr, endDateStr);
 
         if (staking1Deposit > 0) {
-            ret[address] = { staking1Deposit, staking2Deposit }
+            if (isCsv) {
+                retCSV.push(`${address},${staking1Deposit},${staking2Deposit}`)
+            } else {
+                ret[address] = { staking1Deposit, staking2Deposit }
+            }
         }
     }
-
-    return ret
+    if (isCsv) {
+        return "address,staking1Deposit,staking2Deposit\n" + retCSV.join("\n");
+    } else {
+        return ret
+    }
 }
 
 export async function getVaultDepositUserList(startDateStr = '2023-08-01', endDateStr = '2023-10-26') {
