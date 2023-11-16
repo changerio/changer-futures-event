@@ -13,3 +13,7 @@ export enum SUBGRAPHS {
   zksyncEra = 'https://api.studio.thegraph.com/query/56479/gambit-zksync/version/latest', // 'https://service.gambit.trade/subgraphs/name/changerio/gambit', 
   arbitrum = 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum/version/latest'
 }
+
+export const ALL_NETWORK_STR = 'all';
+export const ARBITRUM_NETWORK_STR = 'arbitrum';
+export const ZKSYNCERA_NETWORK_STR = 'zksyncera';

@@ -1,7 +1,8 @@
 import { EventGraphQL } from "../subgraph/gambit";
 import { getEventCache } from '../cache';
 import { logger } from "../utils/logger";
-import { SUBGRAPHS } from "../config/constants";
+import { getOpenFeeP, getCloseFeeP } from "../utils/fee";
+import { SUBGRAPHS, ARBITRUM_NETWORK_STR, ZKSYNCERA_NETWORK_STR, ALL_NETWORK_STR } from "../config/constants";
 
 const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrum);
 const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEra);
@@ -16,6 +17,7 @@ const TV_CACHE_KEY = 'tv_ranking';
 const RANKING_CACHE_KEY = 'ranking_data';
 const END_TIMESTAMP_KEY = 'ranking_timestamp'; // 마지막 endtime
 const cache = getEventCache();
+
 let TOP_25_PNL_TRADERS: RankingInfo[] = [];
 let TOP_25_TV_TRADERS: RankingInfo[] = [];
 let OPEN_EVENT_RANKING_DATA: { [key: string]: RankingInfo } = {};
@@ -58,7 +60,7 @@ export async function upsertMainnetOpenEvent() {
         rankingInfos = await makeRankingInfos(traders);
     } else {
         logger.info(`Update only changes`);
-        const closeTrades: any = await getCloseTrades('all', startTimestamp);
+        const closeTrades: any = await getCloseTrades(ALL_NETWORK_STR, startTimestamp);
         rankingInfos = await updateRankingInfosFromCloseTrades(closeTrades);
         if (rankingInfos.length == 0) {
             return { pnlRanking: TOP_25_PNL_TRADERS, tvRanking: TOP_25_TV_TRADERS };
@@ -74,11 +76,8 @@ export async function setMainnetOpenEvent() {
     return await saveMainnetOpenEvent(rankingInfos);
 }
 
-export async function getDailyCloseTrade(chain: string, isAggregate: boolean = true, isCsv: boolean = true) {
-    const traders: any = await getTradersWithCloseTrades(chain, '0', Math.round(Date.now() / 1000).toString());
-    // tv & num
-    const ret = new Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>()
 
+function _parseCloseTrades(network: string, traders, isAggregate:boolean, ret:Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>) {
     for (let trader of traders) {
         for (let closeTrade of trader.closeTrades) {
             const usdcSentToTrader = parseFloat(closeTrade.usdcSentToTrader.toString()) / 1e6;
@@ -111,11 +110,10 @@ export async function getDailyCloseTrade(chain: string, isAggregate: boolean = t
 
                 let toTreasury = 0;
                 let closeFee = 0;
-                let feeP = 0.0004;
-                if (closeTrade.trade.pairIndex == 4 || closeTrade.trade.pairIndex == 5 || closeTrade.trade.pairIndex == 6) {
-                    feeP = 0.00006;
-                }
-                const openFee = tradingVolume * feeP;
+                let openFeeP = getOpenFeeP(network, closeTrade);
+                let closeFeeP = getCloseFeeP(network, closeTrade);
+                
+                const openFee = tradingVolume * openFeeP;
 
                 // liquidation
                 if (-tradePnl > positionSizeUsdc * 0.9) {
@@ -123,7 +121,7 @@ export async function getDailyCloseTrade(chain: string, isAggregate: boolean = t
                     toTreasury = -tradePnl - closeFee;
                 } else {
                     //close trade
-                    closeFee = tradingVolume * feeP;
+                    closeFee = tradingVolume * closeFeeP;
 
                     if (tradePnl + closeFee < 0 && tradePnl >= 0) {
                         toTreasury = (tradePnl + closeFee);
@@ -143,6 +141,21 @@ export async function getDailyCloseTrade(chain: string, isAggregate: boolean = t
                 }
             }
         }
+    }
+}
+
+export async function getDailyCloseTrade(chain: string, isAggregate: boolean = true, isCsv: boolean = true) {
+    // tv & num
+    const ret = new Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>()
+
+    if(chain === ARBITRUM_NETWORK_STR || chain === ALL_NETWORK_STR) {
+        const arbi_traders: any = await getTradersWithCloseTrades(ARBITRUM_NETWORK_STR, '0', Math.round(Date.now() / 1000).toString());
+        _parseCloseTrades(ARBITRUM_NETWORK_STR, arbi_traders, isAggregate, ret);
+    }
+
+    if(chain === ZKSYNCERA_NETWORK_STR || chain === ALL_NETWORK_STR) {
+        const zk_traders: any = await getTradersWithCloseTrades(ZKSYNCERA_NETWORK_STR, '0', Math.round(Date.now() / 1000).toString());
+        _parseCloseTrades(ZKSYNCERA_NETWORK_STR, zk_traders, isAggregate, ret);
     }
 
     if (isCsv) {
@@ -384,12 +397,12 @@ export async function getRankingOfTrader(address: string) {
     return OPEN_EVENT_RANKING_DATA.hasOwnProperty(address) ? OPEN_EVENT_RANKING_DATA[address] : 'None';
 }
 
-async function getTradersWithCloseTrades(chain: string = 'all', startTime: string = START_TIMESTAMP, endTime: string = END_TIMESTAMP) {
-    if (chain === 'arbitrum') {
+async function getTradersWithCloseTrades(chain: string = ALL_NETWORK_STR, startTime: string = START_TIMESTAMP, endTime: string = END_TIMESTAMP) {
+    if (chain === ARBITRUM_NETWORK_STR) {
         const data = await arbitrumGraphQL.getCloseTradesOfUsersAll(startTime, endTime);
         const { traders } = data;
         return traders;
-    } else if (chain === 'zksyncera') {
+    } else if (chain === ZKSYNCERA_NETWORK_STR) {
         const data = await zksyncEraGraphQL.getCloseTradesOfUsersAll(startTime, endTime);
         const { traders } = data;
         return traders;
@@ -405,13 +418,13 @@ async function getTradersWithCloseTrades(chain: string = 'all', startTime: strin
     }
 }
 
-async function getCloseTrades(chain: string = 'all', startTimestamp: number = 0, endTimestamp: number = Math.round(Date.now() / 1000)) {
+async function getCloseTrades(chain: string = ALL_NETWORK_STR, startTimestamp: number = 0, endTimestamp: number = Math.round(Date.now() / 1000)) {
     logger.info(`[getCloseTrades] ${chain}, ${startTimestamp}, ${endTimestamp}`);
-    if (chain === 'arbitrum') {
+    if (chain === ARBITRUM_NETWORK_STR) {
         const data = await arbitrumGraphQL.getCloseTradesWhereTimestampAll(startTimestamp, endTimestamp);
         const { closeTrades } = data;
         return closeTrades;
-    } else if (chain === 'zksyncera') {
+    } else if (chain === ZKSYNCERA_NETWORK_STR) {
         const data = await zksyncEraGraphQL.getCloseTradesWhereTimestampAll(startTimestamp, endTimestamp);
         const { closeTrades } = data;
         return closeTrades;
