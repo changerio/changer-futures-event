@@ -87,7 +87,7 @@ function makeDailyDeposit(trader, startDateStr: string, endDateStr: string) {
     }
 
     for (let receiveShare of receiveShares) {
-        const share = parseInt(receiveShare.share) / Math.pow(10, 6);
+        const asset = parseInt(receiveShare.asset) / Math.pow(10, 6);
         const timestamp = receiveShare.timestamp;
 
         let date = timestampStringToDate(timestamp);
@@ -97,15 +97,15 @@ function makeDailyDeposit(trader, startDateStr: string, endDateStr: string) {
             date = new Date(startDate);
         }
 
-        // + share
+        // + asset
         while (date <= endDate) {
             const formattedDate = date.toISOString().slice(0, 10);
-            ret[formattedDate] += share;
+            ret[formattedDate] += asset;
             date.setDate(date.getDate() + 1);
         }
     }
     for (let sendShare of sendShares) {
-        const share = parseInt(sendShare.share) / Math.pow(10, 6);
+        const asset = parseInt(sendShare.asset) / Math.pow(10, 6);
         const timestamp = sendShare.timestamp;
 
         let date = timestampStringToDate(timestamp);
@@ -115,10 +115,10 @@ function makeDailyDeposit(trader, startDateStr: string, endDateStr: string) {
             date = new Date(startDate);
         }
 
-        // - share
+        // - asset
         while (date <= endDate) {
             const formattedDate = date.toISOString().slice(0, 10);
-            ret[formattedDate] -= share;
+            ret[formattedDate] -= asset;
             date.setDate(date.getDate() + 1);
         }
     }
