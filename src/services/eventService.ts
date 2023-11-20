@@ -77,7 +77,7 @@ export async function setMainnetOpenEvent() {
 }
 
 
-function _parseCloseTrades(network: string, traders, isAggregate:boolean, ret:Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>) {
+function _parseCloseTrades(network: string, traders, isAggregate: boolean, ret: Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>) {
     for (let trader of traders) {
         for (let closeTrade of trader.closeTrades) {
             const usdcSentToTrader = parseFloat(closeTrade.usdcSentToTrader.toString()) / 1e6;
@@ -112,7 +112,7 @@ function _parseCloseTrades(network: string, traders, isAggregate:boolean, ret:Ma
                 let closeFee = 0;
                 let openFeeP = getOpenFeeP(network, closeTrade);
                 let closeFeeP = getCloseFeeP(network, closeTrade);
-                
+
                 const openFee = tradingVolume * openFeeP;
 
                 // liquidation
@@ -148,12 +148,12 @@ export async function getDailyCloseTrade(chain: string, isAggregate: boolean = t
     // tv & num
     const ret = new Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>()
 
-    if(chain === ARBITRUM_NETWORK_STR || chain === ALL_NETWORK_STR) {
+    if (chain === ARBITRUM_NETWORK_STR || chain === ALL_NETWORK_STR) {
         const arbi_traders: any = await getTradersWithCloseTrades(ARBITRUM_NETWORK_STR, '0', Math.round(Date.now() / 1000).toString());
         _parseCloseTrades(ARBITRUM_NETWORK_STR, arbi_traders, isAggregate, ret);
     }
 
-    if(chain === ZKSYNCERA_NETWORK_STR || chain === ALL_NETWORK_STR) {
+    if (chain === ZKSYNCERA_NETWORK_STR || chain === ALL_NETWORK_STR) {
         const zk_traders: any = await getTradersWithCloseTrades(ZKSYNCERA_NETWORK_STR, '0', Math.round(Date.now() / 1000).toString());
         _parseCloseTrades(ZKSYNCERA_NETWORK_STR, zk_traders, isAggregate, ret);
     }
@@ -303,7 +303,7 @@ async function updateRankingInfosFromCloseTrades(closeTrades) {
     return rankingInfos;
 }
 
-export async function getRankingOfTradingVolumeRealTime(chain: string, startTimestamp: number, endTimestamp: number) {
+export async function getRankingOfTradingVolumeRealTime(chain: string, startTimestamp: number, endTimestamp: number, isCsv: boolean = false) {
     let rankingInfos: RankingInfo[];
     if (startTimestamp != -1) {
         const closeTrades: any = await getCloseTrades(chain, startTimestamp, endTimestamp);
@@ -314,12 +314,18 @@ export async function getRankingOfTradingVolumeRealTime(chain: string, startTime
     }
 
     const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv).map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
-    const topTrader = tvRanking.slice(0, 100);
+    // const topTrader = tvRanking.slice(0, 100);
 
-    return topTrader;
+    if (isCsv) {
+        const retCSV: string[] = [];
+        tvRanking.forEach((trader) => retCSV.push(`${trader.address},${trader.tradeCount},${trader.tv},${trader.pnl},${trader.avgLeverage},${trader.avgPnlPercent},${trader.sumPnlPercent},${trader.tvRanking},${trader.pnlRanking}`))
+        return "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n");
+    }
+
+    return tvRanking; //topTrader;
 }
 
-export async function getRankingOfPnlRealTime(chain: string, startTimestamp: number, endTimestamp: number) {
+export async function getRankingOfPnlRealTime(chain: string, startTimestamp: number, endTimestamp: number, isCsv: boolean = false) {
     let rankingInfos: RankingInfo[];
     if (startTimestamp != -1) {
         const closeTrades: any = await getCloseTrades(chain, startTimestamp, endTimestamp);
@@ -330,9 +336,15 @@ export async function getRankingOfPnlRealTime(chain: string, startTimestamp: num
     }
 
     const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent).map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
-    const topTrader = pnlRanking.slice(0, 100);
+    //const topTrader = pnlRanking.slice(0, 100);
 
-    return topTrader;
+    if (isCsv) {
+        const retCSV: string[] = [];
+        pnlRanking.forEach((trader) => retCSV.push(`${trader.address},${trader.tradeCount},${trader.tv},${trader.pnl},${trader.avgLeverage},${trader.avgPnlPercent},${trader.sumPnlPercent},${trader.tvRanking},${trader.pnlRanking}`))
+        return "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n");
+    }
+
+    return pnlRanking; //topTrader;
 }
 
 async function saveMainnetOpenEvent(rankingInfos: RankingInfo[]) {

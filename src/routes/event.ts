@@ -69,12 +69,12 @@ function onlyFromLocal(req: Request) {
  *              type: object
  */
 eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
-    const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
-    const startDateStr: string = req.query.startDateStr as string;
-    const endDateStr: string = req.query.endDateStr as string;
-    const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
+  const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+  const startDateStr: string = req.query.startDateStr as string;
+  const endDateStr: string = req.query.endDateStr as string;
+  const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
 
-    return res.status(200).send(ret);
+  return res.status(200).send(ret);
 });
 
 /**
@@ -150,6 +150,13 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *        example: '1698626878'
  *        schema:
  *          type: string
+  *      - name: isCsv
+ *        in: query
+ *        requires: true
+ *        description: CSV(plain text) or Object
+ *        example: 'true'
+ *        schema:
+ *          type: string
  *    responses:
  *      200:
  *        description: OK
@@ -159,10 +166,11 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response) => {
+  const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
   const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
   const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
   const endTimestamp: number = parseInt(req.query.endTimestamp as string);
-  const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp);
+  const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp, isCsv);
 
   return res.status(200).send(ret);
 });
@@ -195,6 +203,13 @@ eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response)
  *        example: '1698626878'
  *        schema:
  *          type: string
+  *      - name: isCsv
+ *        in: query
+ *        requires: true
+ *        description: CSV(plain text) or Object
+ *        example: 'true'
+ *        schema:
+ *          type: string
  *    responses:
  *      200:
  *        description: OK
@@ -204,10 +219,11 @@ eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response)
  *              type: object
  */
 eventRouter.get("/mainnet-open/pnl/realtime", async (req: Request, res: Response) => {
+  const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
   const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
   const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
   const endTimestamp: number = parseInt(req.query.endTimestamp as string);
-  const ret = await getRankingOfPnlRealTime(chain, startTimestamp, endTimestamp);
+  const ret = await getRankingOfPnlRealTime(chain, startTimestamp, endTimestamp, isCsv);
 
   return res.status(200).send(ret);
 });
