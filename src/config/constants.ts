@@ -14,6 +14,10 @@ export enum SUBGRAPHS {
   arbitrum = 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum/version/latest'
 }
 
+export enum PYTH {
+  mainnet = 'https://xc-mainnet.pyth.network/api',
+}
+
 export const ALL_NETWORK_STR = 'all';
 export const ARBITRUM_NETWORK_STR = 'arbitrum';
 export const ZKSYNCERA_NETWORK_STR = 'zksyncera';

@@ -14,10 +14,10 @@ const options = {
 		},
 		servers: [
 			{
-				url: "http://localhost:3000",
+				url: "https://service.gambit.trade:7443",
 			},
 			{
-				url: "https://service.gambit.trade:7443",
+				url: "http://localhost:3000",
 			}
 		],
 		contact: {

@@ -6,7 +6,8 @@ import { logger } from "./utils/logger"
 import { loadSwagger } from "./swagger";
 import { eventRouter } from "./routes/event";
 import { statRouter } from "./routes/stat";
-import { loadWorker } from "./worker/updateMainnetOpenEventRanking";
+import { loadWorker } from "./worker";
+import { pairRouter } from "./routes/pair";
 
 // Create Express server
 const app = express();
@@ -25,5 +26,6 @@ loadWorker();
 // router
 app.use("/stat", statRouter);
 app.use("/event", eventRouter);
+app.use("/pair", pairRouter);
 
 export default app;

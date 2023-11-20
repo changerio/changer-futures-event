@@ -1,6 +1,7 @@
 import schedule from "node-schedule";
 import { logger } from "../utils/logger";
 
+import { setMidnightPairPrice } from "../services/pythService";
 import { upsertMainnetOpenEvent } from "../services/eventService";
 
 function updateMainnetOpenEventRanking() {
@@ -8,13 +9,24 @@ function updateMainnetOpenEventRanking() {
   upsertMainnetOpenEvent();
 }
 
+function updateMidnightPairPrice() {
+  logger.info(`[UpdateMidnightPairPrice] ${new Date()}`);
+  setMidnightPairPrice();
+}
+
 export const loadWorker = () => {
   // Called once at startup
   updateMainnetOpenEventRanking();
-  // 10s
-  // schedule.scheduleJob("*/10 * * * * *", () => {
-  // 10m
+  updateMidnightPairPrice();
+
+  // every 10m
   schedule.scheduleJob("*/10 * * * *", () => {
     updateMainnetOpenEventRanking();
   });
+
+  // 00:00:01
+  schedule.scheduleJob("1 0 0 * * *", () => {
+    updateMidnightPairPrice();
+  });
 };
+

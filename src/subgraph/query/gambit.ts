@@ -34,9 +34,7 @@ export const GetPair = gql`
       }
       param {
         fundingFeePerBlockP
-        onePercentDepthAbove
         rolloverFeePerBlockP
-        onePercentDepthBelow
       }
       rolloverFee {
         accPerCollateral
@@ -45,6 +43,58 @@ export const GetPair = gql`
     }
   }
 `;
+
+export const GetPairs = gql`
+query GetPairs {
+  pairs {
+    id
+    name
+    from
+    to
+    confMultiplierP
+    fee {
+      closeFeeP
+      id
+      minLevPosUsdc
+      name
+      nftLimitOrderFeeP
+      openFeeP
+      referralFeeP
+    }
+    feed {
+      feed1
+      feed2
+      feedCalculation
+      id
+      maxDeviationP
+      priceId1
+      priceId2
+    }
+    rolloverFee {
+      accPerCollateral
+      id
+      lastUpdateBlock
+    }
+    fundingFee {
+      accPerOiLong
+      accPerOiShort
+      id
+      lastUpdateBlock
+    }
+    group {
+      id
+      maxCollateralP
+      maxLeverage
+      minLeverage
+      name
+    }
+    param {
+      fundingFeePerBlockP
+      id
+      rolloverFeePerBlockP
+    }
+  }
+}`
 
 export const GetOpenTradesOfUser = gql`
 query GetOpenTradesOfUser($id: ID!) {

@@ -1,13 +1,18 @@
 import * as query from './query/gambit';
 import { GraphQLCommon } from './common';
 
-export class EventGraphQL extends GraphQLCommon {
+export class GambitGraphQL extends GraphQLCommon {
   constructor(url: string) {
     super(url);
   }
 
   public async getPair(id: number) {
     const result = await this.execute(query.GetPair, { id });
+    return result;
+  }
+
+  public async getPairs() {
+    const result = await this.execute(query.GetPairs, {});
     return result;
   }
 

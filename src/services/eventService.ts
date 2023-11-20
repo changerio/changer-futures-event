@@ -1,11 +1,11 @@
-import { EventGraphQL } from "../subgraph/gambit";
+import { GambitGraphQL } from "../subgraph/gambit";
 import { getEventCache } from '../cache';
 import { logger } from "../utils/logger";
 import { getOpenFeeP, getCloseFeeP } from "../utils/fee";
 import { SUBGRAPHS, ARBITRUM_NETWORK_STR, ZKSYNCERA_NETWORK_STR, ALL_NETWORK_STR } from "../config/constants";
 
-const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrum);
-const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEra);
+const arbitrumGraphQL: GambitGraphQL = new GambitGraphQL(SUBGRAPHS.arbitrum);
+const zksyncEraGraphQL: GambitGraphQL = new GambitGraphQL(SUBGRAPHS.zksyncEra);
 const targetGraphQL = [arbitrumGraphQL, zksyncEraGraphQL];
 logger.info(`trading event target: \n- arbitrum: ${SUBGRAPHS.arbitrum}\n- zksyncEra: ${SUBGRAPHS.zksyncEra}`);
 
@@ -402,7 +402,7 @@ export async function getRankingOfTrader(address: string) {
     if (!OPEN_EVENT_RANKING_DATA || Object.keys(OPEN_EVENT_RANKING_DATA).length === 0) {
         OPEN_EVENT_RANKING_DATA = await cache.get(RANKING_CACHE_KEY);
         if (!OPEN_EVENT_RANKING_DATA || Object.keys(OPEN_EVENT_RANKING_DATA).length === 0) {
-            await setMainnetOpenEvent();
+            return 'None';
         }
     }
 
