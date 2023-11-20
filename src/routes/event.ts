@@ -133,7 +133,7 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *        in: query
  *        requires: false
  *        description: zksyncEra | arbitrum | all
- *        example: 'zksyncEra'
+ *        example: 'all'
  *        schema:
  *          type: string
  *      - name: startTimestamp
@@ -152,7 +152,7 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *          type: string
   *      - name: isCsv
  *        in: query
- *        requires: true
+ *        requires: false
  *        description: CSV(plain text) or Object
  *        example: 'true'
  *        schema:
@@ -186,7 +186,7 @@ eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response)
  *        in: query
  *        requires: false
  *        description: zksyncEra | arbitrum | all
- *        example: 'zksyncEra'
+ *        example: 'all'
  *        schema:
  *          type: string
  *      - name: startTimestamp
@@ -205,7 +205,7 @@ eventRouter.get("/mainnet-open/tv/realtime", async (req: Request, res: Response)
  *          type: string
   *      - name: isCsv
  *        in: query
- *        requires: true
+ *        requires: false
  *        description: CSV(plain text) or Object
  *        example: 'true'
  *        schema:
