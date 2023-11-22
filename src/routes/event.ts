@@ -163,6 +163,34 @@ eventRouter.get("/mainnet-open/pnl", async (req: Request, res: Response) => {
 
 /**
  * @swagger
+ * /event/mainnet-open/user/:
+ *   get:
+ *    summary: 메인넷 win rate competition 사용자 정보 조회 (cache) - 데이터 업데이트 안됨
+ *    tags: [Event]
+ *    parameters:
+ *      - name: address
+ *        in: query
+ *        requires: true
+ *        description: 주소
+ *        example: '0x80ead4C1eb54152eCaD24eA62E75F993d6E55744'
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.get("/mainnet-open/user", async (req: Request, res: Response) => {
+  const address: string = req.query.address as string;
+  const ret = await getRankingOfTrader(address.toLowerCase());
+  return res.status(200).send(ret);
+});
+
+/**
+ * @swagger
  * /event/mainnet-open/:
  *   post:
  *    summary: 메인넷 오픈 이벤트 수동 업데이트 (reset)
