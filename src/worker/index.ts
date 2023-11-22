@@ -4,14 +4,26 @@ import { logger } from "../utils/logger";
 import { setMidnightPairPrice } from "../services/pythService";
 import { upsertMainnetOpenEvent } from "../services/eventService";
 
-function updateMainnetOpenEventRanking() {
-  logger.info(`[UpdateMainnetOpenEventRanking] ${new Date()}`);
-  upsertMainnetOpenEvent();
+async function updateMainnetOpenEventRanking() {
+  try {
+    logger.info(`[UpdateMainnetOpenEventRanking] ${new Date()}`);
+    await upsertMainnetOpenEvent();
+  } catch (e) {
+    logger.error(`[UpdateMainnetOpenEventRanking] Fail`);
+    logger.error(e);
+    setTimeout(updateMainnetOpenEventRanking, 1000); // 1s
+  }
 }
 
-function updateMidnightPairPrice() {
-  logger.info(`[UpdateMidnightPairPrice] ${new Date()}`);
-  setMidnightPairPrice();
+async function updateMidnightPairPrice() {
+  try {
+    logger.info(`[UpdateMidnightPairPrice] ${new Date()}`);
+    await setMidnightPairPrice();
+  } catch (e) {
+    logger.error(`[UpdateMidnightPairPrice] Fail`);
+    logger.error(e);
+    setTimeout(updateMidnightPairPrice, 1000); // 1s
+  }
 }
 
 export const loadWorker = () => {
