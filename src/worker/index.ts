@@ -2,7 +2,7 @@ import schedule from "node-schedule";
 import { logger } from "../utils/logger";
 
 import { setMidnightPairPrice } from "../services/pythService";
-import { upsertMainnetOpenEvent } from "../services/eventService";
+import { setMainnetOpenEvent, upsertMainnetOpenEvent } from "../services/eventService";
 
 async function updateMainnetOpenEventRanking() {
   try {
@@ -39,6 +39,7 @@ export const loadWorker = () => {
   // 00:00:01
   schedule.scheduleJob("1 0 0 * * *", () => {
     updateMidnightPairPrice();
+    setMainnetOpenEvent();
   });
 };
 
