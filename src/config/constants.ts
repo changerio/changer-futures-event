@@ -10,7 +10,7 @@ export enum SUBGRAPHS {
   zksyncEraGoerli = 'https://api.studio.thegraph.com/proxy/47348/gambit-zksync-alpha/version/latest',
   arbitrumGoerli = 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum-goerli/version/latest',
 
-  zksyncEra = 'https://api.studio.thegraph.com/query/56479/gambit-zksync/version/latest', // 'https://service.gambit.trade/subgraphs/name/changerio/gambit', 
+  zksyncEra = 'https://service.gambit.trade/subgraphs/name/changerio/gambit',  // 'https://api.studio.thegraph.com/query/56479/gambit-zksync/version/latest'
   arbitrum = 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum/version/latest'
 }
 
