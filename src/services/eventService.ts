@@ -384,11 +384,7 @@ export async function getRankingOfTradingVolume() {
         }
     }
 
-    return TOP_25_TV_TRADERS.map((item) => {
-        const last5Characters = item.address.slice(-5);
-        item.address = `0x${"0".repeat(35)}${last5Characters}`;
-        return item;
-    });
+    return TOP_25_TV_TRADERS;
 }
 
 export async function getRankingOfPnl() {
@@ -399,11 +395,7 @@ export async function getRankingOfPnl() {
         }
     }
 
-    return TOP_25_PNL_TRADERS.map((item) => {
-        const last5Characters = item.address.slice(-5);
-        item.address = `0x${"0".repeat(35)}${last5Characters}`;
-        return item;
-    });
+    return TOP_25_PNL_TRADERS;
 }
 
 export async function getRankingOfTrader(address: string) {
