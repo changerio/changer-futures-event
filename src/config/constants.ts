@@ -15,7 +15,7 @@ export enum SUBGRAPHS {
 }
 
 export enum PYTH {
-  mainnet = 'https://xc-mainnet.pyth.network/api',
+  mainnet =  'https://hermes.pyth.network/api', //'https://xc-mainnet.pyth.network/api',
 }
 
 export const ALL_NETWORK_STR = 'all';
