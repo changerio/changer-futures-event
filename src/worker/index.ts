@@ -3,7 +3,7 @@ import { logger } from "../utils/logger";
 
 import { setMidnightPairPrice } from "../services/pythService";
 import { setMainnetOpenEvent, upsertMainnetOpenEvent } from "../services/eventService";
-import { setAPR } from "../data/dune";
+import { setAPR } from "../services/duneService";
 
 async function updateMainnetOpenEventRanking() {
   try {

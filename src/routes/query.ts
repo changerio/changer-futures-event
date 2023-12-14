@@ -1,7 +1,6 @@
 import { Request, Response, Router } from "express";
-import { getMidnightPairPrice } from "../services/pythService";
-import { getAPR } from "../data/dune";
 import { ALL_NETWORK_STR } from "../config/constants";
+import { getAPR } from "../services/duneService";
 
 /**
  * @swagger
