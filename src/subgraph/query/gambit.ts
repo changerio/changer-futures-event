@@ -57,7 +57,6 @@ query GetPairs {
       id
       minLevPosUsdc
       name
-      nftLimitOrderFeeP
       openFeeP
       referralFeeP
     }
