@@ -30,6 +30,7 @@
         "file-system-cache": "^2.0.2",
         "graphql": "^16.6.0",
         "graphql-request": "^6.0.0",
+        "node-fetch": "^3.3.2",
         "node-schedule": "^2.1.1",
         "winston": "^3.9.0"
     },

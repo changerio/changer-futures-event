@@ -3,6 +3,7 @@ import { logger } from "../utils/logger";
 
 import { setMidnightPairPrice } from "../services/pythService";
 import { setMainnetOpenEvent, upsertMainnetOpenEvent } from "../services/eventService";
+import { setAPR } from "../data/dune";
 
 async function updateMainnetOpenEventRanking() {
   try {
@@ -30,6 +31,7 @@ export const loadWorker = () => {
   // Called once at startup
   updateMainnetOpenEventRanking();
   updateMidnightPairPrice();
+  setAPR("arbitrum");
 
   // every 10m
   schedule.scheduleJob("*/10 * * * *", () => {
@@ -40,6 +42,7 @@ export const loadWorker = () => {
   schedule.scheduleJob("1 0 0 * * *", () => {
     updateMidnightPairPrice();
     setMainnetOpenEvent();
+    setAPR("arbitrum");
   });
 };
 

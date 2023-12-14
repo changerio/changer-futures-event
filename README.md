@@ -32,6 +32,7 @@ git clone https://github.com/changerio/changer-futures-event.git
 - example
 ```
 NETWORK_NAME=zksyncEraGoerli
+DUNE_API_KEY=
 ```
 
 ## Running

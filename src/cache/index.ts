@@ -10,10 +10,19 @@ const pairCache = Cache({
     ns: "pair"
 });
 
+const duneCache = Cache({
+    basePath: "./.cache/dune",
+    ns: "dune"
+});
+
 export function getEventCache() {
     return eventCache;
 }
 
 export function getPairCache() {
     return pairCache;
+}
+
+export function getDuneCache() {
+    return duneCache;
 }

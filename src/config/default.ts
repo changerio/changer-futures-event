@@ -21,6 +21,7 @@ const config = {
 	subgraph: {
 		gambit: process.env.SUBGRAPH_URL ?? SUBGRAPHS[NETWORK_NAME as keyof typeof CHAIN_IDS]
 	},
+	DUNE_API_KEY: process.env.DUNE_API_KEY ?? "",
 };
 
 console.log('## config :', config);

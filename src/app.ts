@@ -8,6 +8,7 @@ import { eventRouter } from "./routes/event";
 import { statRouter } from "./routes/stat";
 import { loadWorker } from "./worker";
 import { pairRouter } from "./routes/pair";
+import { queryRouter } from "./routes/query";
 
 // Create Express server
 const app = express();
@@ -27,5 +28,6 @@ loadWorker();
 app.use("/stat", statRouter);
 app.use("/event", eventRouter);
 app.use("/pair", pairRouter);
+app.use("/query", queryRouter);
 
 export default app;
