@@ -1,7 +1,7 @@
-import { promises } from "dns";
+import axios from "axios";
 import { logger } from "../utils/logger";
-import { getDuneCache } from "../cache";
 import config from "../config/default";
+import { AxiosResponse } from "axios";
 
 export interface DuneApiResponse {
     execution_id: string;
@@ -21,21 +21,19 @@ export interface DuneExecutionResult {
 
 export async function executeQuery(queryId: number, params: { [key: string]: string } = {}): Promise<DuneApiResponse> {
     const headers = {
-        "x-dune-api-key": config.DUNE_API_KEY
+        "x-dune-api-key": config.DUNE_API_KEY,
+        "Content-Type": "application/json"
     };
-    // const header = new Headers(meta);
 
     try {
-        const response = await fetch(`https://api.dune.com/api/v1/query/${queryId}/execute`, {
-            method: 'POST',
-            headers: headers,
-            body: JSON.stringify({ "query_parameters": params })
-        });
-        if (!response.ok) {
-            throw new Error(`[Dune] Dune API request failed with status: ${response.status}`);
-        }
-        const body: DuneApiResponse = await response.json();
-        return body;
+        const response: AxiosResponse<DuneApiResponse> = await axios.post(
+            `https://api.dune.com/api/v1/query/${queryId}/execute`,
+            { "query_parameters": params },
+            { headers }
+        );
+
+        const result: DuneApiResponse = response.data;
+        return result;
     } catch (error) {
         logger.error("[Dune] Error calling Dune API:", error);
         throw error;
@@ -46,18 +44,15 @@ export async function getQueryResult(queryId: number, params: { [key: string]: s
     const headers = {
         "x-dune-api-key": config.DUNE_API_KEY
     };
-    // const header = new Headers(meta);
 
     try {
-        const response = await fetch(`https://api.dune.com/api/v1/query/${queryId}/results`, {
-            method: 'GET',
-            headers: headers
-        });
-        if (!response.ok) {
-            throw new Error(`[Dune] Dune API request failed with status: ${response.status}`);
-        }
-        const body: DuneExecutionResult = await response.json();
-        return body;
+        const response: AxiosResponse<DuneExecutionResult> = await axios.get(
+            `https://api.dune.com/api/v1/query/${queryId}/results`,
+            { headers }
+        );
+
+        const result: DuneExecutionResult = response.data;
+        return result;
     } catch (error) {
         logger.error("[Dune] Error calling Dune API:", error);
         throw error;
@@ -70,16 +65,12 @@ export async function getExecutionResult(executionId: string): Promise<DuneExecu
     };
 
     try {
-        const response = await fetch(`https://api.dune.com/api/v1/execution/${executionId}/results`, {
-            method: 'GET',
-            headers: headers
-        });
+        const response: AxiosResponse<DuneExecutionResult> = await axios.get(
+            `https://api.dune.com/api/v1/execution/${executionId}/results`,
+            { headers }
+        );
 
-        if (!response.ok) {
-            throw new Error(`[Dune] Dune API request failed with status: ${response.status}`);
-        }
-
-        const result: DuneExecutionResult = await response.json();
+        const result: DuneExecutionResult = response.data;
         return result;
     } catch (error) {
         logger.error("[Dune] Error fetching execution result from Dune API:", error);
