@@ -31,7 +31,7 @@ export const loadWorker = () => {
   // Called once at startup
   updateMainnetOpenEventRanking();
   updateMidnightPairPrice();
-  setAPR("arbitrum");
+  setAPR();
 
   // every 10m
   schedule.scheduleJob("*/10 * * * *", () => {
@@ -42,7 +42,7 @@ export const loadWorker = () => {
   schedule.scheduleJob("1 0 0 * * *", () => {
     updateMidnightPairPrice();
     setMainnetOpenEvent();
-    setAPR("arbitrum");
+    setAPR();
   });
 };
 
