@@ -3,7 +3,7 @@ import { logger } from "../utils/logger";
 
 import { setMidnightPairPrice } from "../services/pythService";
 import { setMainnetOpenEvent, upsertMainnetOpenEvent } from "../services/eventService";
-import { setAPR } from "../services/duneService";
+import { excuteDashboardQuery, setAPR } from "../services/duneService";
 
 async function updateMainnetOpenEventRanking() {
   try {
@@ -27,6 +27,16 @@ async function updateMidnightPairPrice() {
   }
 }
 
+async function excuteDuneDashboardQuery() {
+  try {
+    logger.info(`[ExcuteDuneDashboardQuery] ${new Date()}`);
+    await excuteDashboardQuery();
+  } catch (e) {
+    logger.error(`[ExcuteDuneDashboardQuery] Fail`);
+    logger.error(e);
+  }
+}
+
 export const loadWorker = () => {
   // Called once at startup
   updateMainnetOpenEventRanking();
@@ -40,8 +50,13 @@ export const loadWorker = () => {
 
   // 00:00:01
   schedule.scheduleJob("1 0 0 * * *", () => {
+    excuteDuneDashboardQuery();
     updateMidnightPairPrice();
     setMainnetOpenEvent();
+  });
+
+  // 00:00:30
+  schedule.scheduleJob("30 0 0 * * *", () => {
     setAPR();
   });
 };

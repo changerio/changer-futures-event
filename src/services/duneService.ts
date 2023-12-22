@@ -11,10 +11,20 @@ const CACHE_KEY = {
 
 const QUERY = {
     // public
-    VAULT_APR: 3251465,
+    Vault_Stats: 3251465,
+
+    // daily 
+    Trade_Stats: 3251396,
+    Trade_Stats_By_Chain: 3295731,
+    Daily_Stats: 3204175,
+    Cumulative_Trade_Stats: 3197967,
+    Open_Trade_by_Assets: 3239221,
+    Trade_Volume_by_Assets: 3214590,
+    Close_Trade_Stats: 3221707,
+    Collateral_Ratio_Stats: 3239902,
 
     // private
-    PRIVATE_TRADER: 3226962, // close trade list
+    Private_trader: 3226962, // close trade list
 }
 
 let retryCount = 0;
@@ -39,7 +49,7 @@ export async function getAPR(network: string) {
 }
 
 export async function setAPR() {
-    const result: DuneExecutionResult = await getQueryResult(QUERY.VAULT_APR);
+    const result: DuneExecutionResult = await getQueryResult(QUERY.Vault_Stats);
     if (!result.result || !result.result?.rows) {
         excuteUsdcAPR();
         await cache.set(CACHE_KEY.VAULT_APR, DEFAULT_APR);
@@ -81,7 +91,7 @@ async function parseAPR(result: DuneExecutionResult) {
 
 export async function excuteUsdcAPR() {
     retryCount = 0;
-    const ret = await executeQuery(QUERY.VAULT_APR);
+    const ret = await executeQuery(QUERY.Vault_Stats);
 
     getExecutionResultWithDelay(ret.execution_id, parseAPR);
 }
@@ -98,4 +108,15 @@ async function getExecutionResultWithDelay(executionId: string, callback: Functi
             }
         }, 2000);
     }
+}
+
+export async function excuteDashboardQuery() {
+    await executeQuery(QUERY.Vault_Stats); // Get APR
+    await executeQuery(QUERY.Trade_Stats);
+    await executeQuery(QUERY.Trade_Stats_By_Chain, { Chain: "ALL" });
+    await executeQuery(QUERY.Daily_Stats);
+    await executeQuery(QUERY.Cumulative_Trade_Stats);
+    await executeQuery(QUERY.Open_Trade_by_Assets);
+    await executeQuery(QUERY.Trade_Volume_by_Assets);
+    await executeQuery(QUERY.Close_Trade_Stats);
 }
