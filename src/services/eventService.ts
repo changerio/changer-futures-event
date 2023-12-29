@@ -195,6 +195,9 @@ async function makeRankingInfos(traders) {
         let sumPnlPercent = 0;
         let pnl = 0;
         for (let closeTrade of trader.closeTrades) {
+            if (closeTrade.id == '0xa9b2cbfab2b8be5e080a1a352c5b7de9627192ef-2' && closeTrade.timestamp == 1703486957) {
+                continue; // LIQUIDATION
+            }
             const usdcSentToTrader = parseFloat(closeTrade.usdcSentToTrader.toString()) / 1e6;
             const positionSizeUsdc = parseFloat(closeTrade.trade.positionSizeUsdc.toString()) / 1e6;
             const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
