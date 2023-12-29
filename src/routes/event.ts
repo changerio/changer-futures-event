@@ -72,9 +72,9 @@ eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
   const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
   const startDateStr: string = req.query.startDateStr as string;
   const endDateStr: string = req.query.endDateStr as string;
-  const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
+  // const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
 
-  return res.status(200).send(ret);
+  return res.status(200).send('ok');
 });
 
 /**
@@ -117,8 +117,8 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
   const address: string = req.query.address as string;
   const startDateStr: string = req.query.startDateStr as string;
   const endDateStr: string = req.query.endDateStr as string;
-  const ret = await getVaultEventUserData(address.toLowerCase(), startDateStr, endDateStr);
-  return res.status(200).send(ret);
+  // const ret = await getVaultEventUserData(address.toLowerCase(), startDateStr, endDateStr);
+  return res.status(200).send('ok');
 });
 
 /**
