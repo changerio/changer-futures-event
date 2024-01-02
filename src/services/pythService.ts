@@ -1,10 +1,12 @@
 import { getPairCache } from '../cache';
 import { logger } from "../utils/logger";
-import { PYTH, SUBGRAPHS } from "../config/constants";
+// import { PYTH, SUBGRAPHS } from "../config/constants";
 import { fetchData } from "../utils/axios";
 import { GambitGraphQL } from "../subgraph/gambit";
+import config from '../config/default';
 
-const arbitrumGraphQL: GambitGraphQL = new GambitGraphQL(SUBGRAPHS.arbitrum);
+const arbitrumGraphQL: GambitGraphQL = new GambitGraphQL(config.subgraph.arbitrum);
+const PYTH_API = config.PYTH_API;
 
 const PRICE_CACHE_KEY = 'midnight_price';
 const cache = getPairCache();
@@ -38,12 +40,13 @@ export async function setMidnightPairPrice() {
     for (const pair of pairs) {
         const pairId = pair.id;
         const priceFeedId = pair.feed.priceId1;
-        const priceUrl = `${PYTH.mainnet}/get_price_feed?id=${priceFeedId}&publish_time=${midnightTime}`;
+        const priceUrl = `${PYTH_API}/get_price_feed?id=${priceFeedId}&publish_time=${midnightTime}`;
         const data = await fetchData(priceUrl)
             .then((response) => {
                 return response.data;
             })
             .catch((error) => {
+                console.error(priceUrl);
                 console.error('[ERROR][setMidnightPairPrice] GET Request Error:', error.message);
             });
 
@@ -57,6 +60,7 @@ export async function setMidnightPairPrice() {
     }
 
     await cache.set(PRICE_CACHE_KEY, priceMap);
+    return priceMap;
 }
 
 export async function getMidnightPairPrice() {

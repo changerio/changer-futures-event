@@ -2,6 +2,8 @@ export enum CHAIN_IDS {
   hardhat = 31337, // hardhat test network
   zksyncEra = 324,
   zksyncEraGoerli = 280,
+  arbitrum = 42161,
+  arbitrumGoerli = 421613,
 }
 
 export enum SUBGRAPHS {
@@ -15,7 +17,8 @@ export enum SUBGRAPHS {
 }
 
 export enum PYTH {
-  mainnet =  'https://hermes.pyth.network/api', //'https://xc-mainnet.pyth.network/api',
+  mainnet = 'https://hermes.pyth.network/api', //'https://xc-mainnet.pyth.network/api',
+  testnet = 'https://hermes-beta.pyth.network/api',
 }
 
 export const ALL_NETWORK_STR = 'all';
