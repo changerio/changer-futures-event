@@ -2,12 +2,13 @@ import { GambitGraphQL } from "../subgraph/gambit";
 import { getEventCache } from '../cache';
 import { logger } from "../utils/logger";
 import { getOpenFeeP, getCloseFeeP } from "../utils/fee";
-import { SUBGRAPHS, ARBITRUM_NETWORK_STR, ZKSYNCERA_NETWORK_STR, ALL_NETWORK_STR } from "../config/constants";
+import { ARBITRUM_NETWORK_STR, ZKSYNCERA_NETWORK_STR, ALL_NETWORK_STR } from "../config/constants";
+import config from "../config/default";
 
-const arbitrumGraphQL: GambitGraphQL = new GambitGraphQL(SUBGRAPHS.arbitrum);
-const zksyncEraGraphQL: GambitGraphQL = new GambitGraphQL(SUBGRAPHS.zksyncEra);
+const arbitrumGraphQL: GambitGraphQL = new GambitGraphQL(config.subgraph.arbitrum);
+const zksyncEraGraphQL: GambitGraphQL = new GambitGraphQL(config.subgraph.zksync);
 const targetGraphQL = [arbitrumGraphQL, zksyncEraGraphQL];
-logger.info(`trading event target: \n- arbitrum: ${SUBGRAPHS.arbitrum}\n- zksyncEra: ${SUBGRAPHS.zksyncEra}`);
+logger.info(`trading event target: \n- arbitrum: ${config.subgraph.arbitrum}\n- zksyncEra: ${config.subgraph.zksync}`);
 
 const START_TIMESTAMP = '1698969600'; // 2023년 11월 3일 0시 0분 0초 (GMT)
 const END_TIMESTAMP = '1704499200'; // 2024년 1월 6일 0시 0분 0초 (GMT)

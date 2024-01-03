@@ -1,9 +1,9 @@
 import { logger } from "../utils/logger";
 import { EventGraphQL } from "../subgraph/event";
-import { SUBGRAPHS } from "../config/constants";
+import config from "../config/default";
 
-// const arbitrumGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.arbitrum);
-const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(SUBGRAPHS.zksyncEra);
+// const arbitrumGraphQL: EventGraphQL = new EventGraphQL(config.subgraph.arbitrum);
+const zksyncEraGraphQL: EventGraphQL = new EventGraphQL(config.subgraph.zksync);
 
 export async function getVaultEventUserData(address: string, startDateStr = '2023-08-01', endDateStr = '2023-10-26') {
     const data = await zksyncEraGraphQL.getVaultDepositUser(address);
