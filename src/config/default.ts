@@ -5,6 +5,7 @@ import dotenv from "dotenv";
 dotenv.config({ debug: true });
 
 const NETWORK_NAME = process.env.NETWORK_NAME ?? "hardhat";
+const ALCHEMY_QUERY_KEY = process.env.ALCHEMY_QUERY_KEY ?? "";
 
 function isMainnet() {
 	return NETWORK_NAME == "zksyncEra" || NETWORK_NAME == "arbitrum"
@@ -25,7 +26,7 @@ const config = {
 	},
 	subgraph: {
 		gambit: process.env.SUBGRAPH_URL ?? SUBGRAPHS[NETWORK_NAME as keyof typeof CHAIN_IDS],
-		arbitrum: isMainnet() ? SUBGRAPHS.arbitrum : SUBGRAPHS.arbitrumGoerli,
+		arbitrum: isMainnet() ? SUBGRAPHS.arbitrum.replace("{QUERY_KEY}", ALCHEMY_QUERY_KEY) : SUBGRAPHS.arbitrumGoerli,
 		zksync: isMainnet() ? SUBGRAPHS.zksyncEra : SUBGRAPHS.zksyncEraGoerli,
 	},
 	DUNE_API_KEY: process.env.DUNE_API_KEY ?? "",

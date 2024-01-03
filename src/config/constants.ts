@@ -15,7 +15,7 @@ export enum SUBGRAPHS {
 
   zksyncEra = 'https://service.gambit.trade/subgraphs/name/changerio/gambit',
   // 'https://api.studio.thegraph.com/query/56479/gambit-zksync/version/latest'
-  arbitrum = 'https://subgraph.satsuma-prod.com/ea7679ba74a5/s-team--2985234/gambit-arbitrum/api'
+  arbitrum = 'https://subgraph.satsuma-prod.com/{QUERY_KEY}/s-team--2985234/gambit-arbitrum/api'
   // 'https://subgraph.satsuma-prod.com/s-team--2985234/gambit-arbitrum/playground'
   // 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum/version/latest' free
 }
