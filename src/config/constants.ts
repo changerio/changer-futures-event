@@ -9,11 +9,15 @@ export enum CHAIN_IDS {
 export enum SUBGRAPHS {
   hardhat = 'http://127.0.0.1:8000/subgraphs/name/changerio/gambit',
 
-  zksyncEraGoerli = 'https://api.studio.thegraph.com/proxy/47348/gambit-zksync-alpha/version/latest',
+  zksyncEraGoerli = 'https://api.studio.thegraph.com/query/56479/gambit-zksync-testnet/version/latest',
+  // 'https://api.studio.thegraph.com/proxy/47348/gambit-zksync-alpha/version/latest',
   arbitrumGoerli = 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum-goerli/version/latest',
 
-  zksyncEra = 'https://service.gambit.trade/subgraphs/name/changerio/gambit',  // 'https://api.studio.thegraph.com/query/56479/gambit-zksync/version/latest'
-  arbitrum = 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum/version/latest'
+  zksyncEra = 'https://service.gambit.trade/subgraphs/name/changerio/gambit',
+  // 'https://api.studio.thegraph.com/query/56479/gambit-zksync/version/latest'
+  arbitrum = 'https://subgraph.satsuma-prod.com/ea7679ba74a5/s-team--2985234/gambit-arbitrum/api'
+  // 'https://subgraph.satsuma-prod.com/s-team--2985234/gambit-arbitrum/playground'
+  // 'https://api.studio.thegraph.com/query/56479/gambit-arbitrum/version/latest' free
 }
 
 export enum PYTH {
