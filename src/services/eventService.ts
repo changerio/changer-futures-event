@@ -205,7 +205,7 @@ async function makeRankingInfos(traders) {
             const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
             sumLeverage += leverage;
             sumPnlPercent += closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-            tv += isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.15) : positionSizeUsdc * leverage; // forex 0.006 | cryto 0.04
+            tv += isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.125) : positionSizeUsdc * leverage; // forex 0.006 | cryto 0.04
             // tv += positionSizeUsdc * leverage; // origin
             pnl += tradePnl;
             const tradeTimestamp = Number(closeTrade.timestamp);
@@ -243,7 +243,7 @@ async function makeRankingInfosFromCloseTrades(closeTrades) {
         const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
         const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
         const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.15) : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
+        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.125) : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
         const pnl = tradePnl;
 
         if (!rankingMap.hasOwnProperty(address)) {
@@ -282,7 +282,7 @@ async function updateRankingInfosFromCloseTrades(closeTrades) {
         const leverage = parseFloat(closeTrade.trade.leverage.toString()) / 1e18;
         const tradePnl = usdcSentToTrader - positionSizeUsdc; // 최종손익 
         const pnlPercent = closeTrade.percentProfit / 1e10 > -100 ? closeTrade.percentProfit / 1e10 : -100; // tradePnl / positionSizeUsdc * 100;
-        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.15) : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
+        const tv = isForex(closeTrade.trade.pairIndex) ? (positionSizeUsdc * leverage * 0.125) : positionSizeUsdc * leverage; // fores 0.006 | cryto 0.04
         const pnl = tradePnl;
 
         if (!OPEN_EVENT_RANKING_DATA.hasOwnProperty(address)) {
