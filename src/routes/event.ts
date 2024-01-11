@@ -2,15 +2,13 @@ import { Request, Response, Router } from "express";
 
 import {
   getRankingOfPnl,
-  getRankingOfPnlRealTime,
   getRankingOfTrader,
   getRankingOfTradingVolume,
-  getRankingOfTradingVolumeRealTime,
+  getWeeklyEventInfo,
   setMainnetOpenEvent,
-  upsertMainnetOpenEvent
+  setWeeklyTradingEvent,
+  upsertTradingEvent
 } from "../services/eventService";
-import { getVaultEventUserData, getVaultEventUserList } from "../services/vaultEventService";
-import { ALL_NETWORK_STR } from "../config/constants";
 
 /**
  * @swagger
@@ -185,6 +183,9 @@ eventRouter.get("/mainnet-open/pnl", async (req: Request, res: Response) => {
  */
 eventRouter.get("/mainnet-open/user", async (req: Request, res: Response) => {
   const address: string = req.query.address as string;
+  if (!address) {
+    return res.status(200).send({});
+  }
   const ret = await getRankingOfTrader(address.toLowerCase());
   return res.status(200).send(ret);
 });
@@ -226,13 +227,125 @@ eventRouter.post("/mainnet-open/", async (req: Request, res: Response) => {
  *             schema:
  *              type: object
  */
-eventRouter.put("/mainnet-open/", async (req: Request, res: Response) => {
+// eventRouter.put("/mainnet-open/", async (req: Request, res: Response) => {
+//   if (onlyFromLocal(req)) {
+//     const ret = await upsertTradingEvent();
+//     return res.status(200).send(ret);
+//   } else {
+//     return res.status(401).send();
+//   }
+// });
+
+// ******************************
+
+/**
+ * @swagger
+ * /event/weekly/:
+ *   post:
+ *    summary: reset weekly ranking
+ *    tags: [Event]
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.post("/weekly/", async (req: Request, res: Response) => {
   if (onlyFromLocal(req)) {
-    const ret = await upsertMainnetOpenEvent();
+    const ret = await setWeeklyTradingEvent();
     return res.status(200).send(ret);
   } else {
     return res.status(401).send();
   }
+});
+
+/**
+ * @swagger
+ * /event/weekly/info/:
+ *   get:
+ *    summary: weekly trading event info (trading volume)
+ *    tags: [Event]
+ *    parameters:
+ *      - name: target
+ *        in: query
+ *        requires: false
+ *        description: Week1 | Week2 | Week3
+ *        example: 'Week1'
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.get("/weekly/info", async (req: Request, res: Response) => {
+  const target: string = req.query.target as string ?? 'None';
+  const ret = await getWeeklyEventInfo(target);
+  return res.status(200).send(ret);
+});
+
+/**
+ * @swagger
+ * /event/weekly/tv/:
+ *   get:
+ *    summary: weekly trading event (trading volume)
+ *    tags: [Event]
+ *    parameters:
+ *      - name: target
+ *        in: query
+ *        requires: false
+ *        description: Week1 | Week2 | Week3
+ *        example: 'Week1'
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.get("/weekly/tv", async (req: Request, res: Response) => {
+  const target: string = req.query.target as string ?? 'None';
+  const ret = await getRankingOfTradingVolume(target);
+  return res.status(200).send(ret);
+});
+
+/**
+ * @swagger
+ * /event/weekly/user/:
+ *   get:
+ *    summary: weekly trading event 사용자 정보 조회 (cache) - 데이터 업데이트 안됨
+ *    tags: [Event]
+ *    parameters:
+ *      - name: address
+ *        in: query
+ *        requires: true
+ *        description: 주소
+ *        example: '0x80ead4C1eb54152eCaD24eA62E75F993d6E55744'
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.get("/weekly/user", async (req: Request, res: Response) => {
+  const address: string = req.query.address as string;
+  if (!address) {
+    return res.status(200).send({});
+  }
+  const ret = await getRankingOfTrader(address.toLowerCase());
+  return res.status(200).send(ret);
 });
 
 export { eventRouter };

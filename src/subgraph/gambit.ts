@@ -31,13 +31,13 @@ export class GambitGraphQL extends GraphQLCommon {
     return result;
   }
 
-  public async getCloseTradesOfUsersAll(startTime: string, endTime: string) {
+  public async getCloseTradesOfUsersAll(startTimestamp: string, endTimestamp: string) {
     const first: number = 1000;
     let skip: number = 0;
 
     let result = [];
     while (true) {
-      const data = await this.getCloseTradesOfUsers(first, skip, startTime, endTime);
+      const data = await this.getCloseTradesOfUsers(first, skip, startTimestamp, endTimestamp);
       const { traders } = data;
 
       if (traders.length === 0) {
@@ -76,13 +76,13 @@ export class GambitGraphQL extends GraphQLCommon {
     return result;
   }
 
-  public async getCloseTradesWhereTimestampAll(startTime: number = 0, endTime: number = Math.round(Date.now() / 1000)) {
+  public async getCloseTradesWhereTimestampAll(startTimestamp: string = '0', endTimestamp: string = (Math.round(Date.now() / 1000)).toString()) {
     const first: number = 1000;
     let skip: number = 0;
 
     let result = [];
     while (true) {
-      const data = await this.getCloseTradesWhereTimestamp(first, skip, startTime.toString(), endTime.toString());
+      const data = await this.getCloseTradesWhereTimestamp(first, skip, startTimestamp, endTimestamp);
       if (!data.hasOwnProperty('closeTrades')) {
         return { closeTrades: [] };
       }

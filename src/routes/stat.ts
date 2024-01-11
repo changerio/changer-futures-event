@@ -104,8 +104,8 @@ statRouter.get("/day-trade", async (req: Request, res: Response) => {
 statRouter.get("/tv/realtime", async (req: Request, res: Response) => {
   const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
   const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
-  const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
-  const endTimestamp: number = parseInt(req.query.endTimestamp as string);
+  const startTimestamp: string = req.query.startTimestamp as string ?? '0';
+  const endTimestamp: string = req.query.endTimestamp as string;
   const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp, isCsv);
 
   return res.status(200).send(ret);
@@ -157,8 +157,8 @@ statRouter.get("/tv/realtime", async (req: Request, res: Response) => {
 statRouter.get("/pnl/realtime", async (req: Request, res: Response) => {
   const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
   const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
-  const startTimestamp: number = parseInt(req.query.startTimestamp as string) ?? -1;
-  const endTimestamp: number = parseInt(req.query.endTimestamp as string);
+  const startTimestamp: string = req.query.startTimestamp as string ?? '0';
+  const endTimestamp: string = req.query.endTimestamp as string;
   const ret = await getRankingOfPnlRealTime(chain, startTimestamp, endTimestamp, isCsv);
 
   return res.status(200).send(ret);
