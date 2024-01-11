@@ -453,7 +453,10 @@ export async function getWeeklyEventInfo(target: string = 'None') {
 }
 
 export async function getRankingOfTradingVolume(target: string = 'None') {
-    if (!target || target != 'None') {
+    if (target == 'MAIN') {
+        return await cache.get(TV_CACHE_KEY) ?? [];
+    }
+    if (target != 'None') {
         return await cache.get(TV_CACHE_KEY + "_" + target) ?? [];
     }
 
@@ -467,7 +470,14 @@ export async function getRankingOfTradingVolume(target: string = 'None') {
     return TOP_25_TV_TRADERS;
 }
 
-export async function getRankingOfPnl() {
+export async function getRankingOfPnl(target: string = 'None') {
+    if (target == 'MAIN') {
+        return await cache.get(PNL_CACHE_KEY) ?? [];
+    }
+    if (target != 'None') {
+        return await cache.get(PNL_CACHE_KEY + "_" + target) ?? [];
+    }
+
     if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
         TOP_25_PNL_TRADERS = await cache.get(WEEKLY_PNL_CACHE_KEY) ?? [];
         if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
@@ -478,7 +488,16 @@ export async function getRankingOfPnl() {
     return TOP_25_PNL_TRADERS;
 }
 
-export async function getRankingOfTrader(address: string) {
+export async function getRankingOfTrader(address: string, target: string = 'None') {
+    if (target == 'MAIN') {
+        const rankingData = await cache.get(RANKING_CACHE_KEY) ?? [];
+        return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
+    }
+    if (target != 'None') {
+        const rankingData = await cache.get(PNL_CACHE_KEY + "_" + target) ?? [];
+        return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
+    }
+
     if (!TRADING_EVENT_RANKING_DATA || Object.keys(TRADING_EVENT_RANKING_DATA).length === 0) {
         TRADING_EVENT_RANKING_DATA = await cache.get(WEEKLY_RANKING_CACHE_KEY);
         if (!TRADING_EVENT_RANKING_DATA || Object.keys(TRADING_EVENT_RANKING_DATA).length === 0) {

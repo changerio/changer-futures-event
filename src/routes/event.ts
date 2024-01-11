@@ -134,7 +134,7 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/mainnet-open/tv", async (req: Request, res: Response) => {
-  const ret = await getRankingOfTradingVolume();
+  const ret = await getRankingOfTradingVolume("MAIN");
 
   return res.status(200).send(ret);
 });
@@ -154,7 +154,7 @@ eventRouter.get("/mainnet-open/tv", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/mainnet-open/pnl", async (req: Request, res: Response) => {
-  const ret = await getRankingOfPnl();
+  const ret = await getRankingOfPnl("MAIN");
 
   return res.status(200).send(ret);
 });
@@ -186,7 +186,7 @@ eventRouter.get("/mainnet-open/user", async (req: Request, res: Response) => {
   if (!address) {
     return res.status(200).send({});
   }
-  const ret = await getRankingOfTrader(address.toLowerCase());
+  const ret = await getRankingOfTrader(address.toLowerCase(), "MAIN");
   return res.status(200).send(ret);
 });
 
