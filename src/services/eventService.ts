@@ -464,53 +464,65 @@ export async function getWeeklyEventInfo(target: string = 'None') {
 }
 
 export async function getRankingOfTradingVolume(target: string = 'None') {
-    if (target == 'MAIN') {
-        return await cache.get(TV_CACHE_KEY) ?? [];
-    }
     if (target != 'None') {
-        return await cache.get(TV_CACHE_KEY + "_" + target) ?? [];
+        if (target == 'MAIN') {
+            return await cache.get(TV_CACHE_KEY) ?? [];
+        } else {
+            return await cache.get(getWeeklyTvCacheKey(target)) ?? [];
+        }
+    }
+    if (WEEKLY_EVENT_TARGET == 'END') {
+        return await cache.get(getWeeklyTvCacheKey('Week3')) ?? [];
     }
 
     if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
         TOP_25_TV_TRADERS = await cache.get(getWeeklyTvCacheKey()) ?? [];
-        if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
-            await setWeeklyTradingEvent();
-        }
+        // if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
+        //     await setWeeklyTradingEvent();
+        // }
     }
 
     return TOP_25_TV_TRADERS;
 }
 
 export async function getRankingOfPnl(target: string = 'None') {
-    if (target == 'MAIN') {
-        return await cache.get(PNL_CACHE_KEY) ?? [];
-    }
     if (target != 'None') {
-        return await cache.get(PNL_CACHE_KEY + "_" + target) ?? [];
+        if (target == 'MAIN') {
+            return await cache.get(PNL_CACHE_KEY) ?? [];
+        } else {
+            return await cache.get(getWeeklyPnlCacheKey(target)) ?? [];
+        }
+    }
+    if (WEEKLY_EVENT_TARGET == 'END') {
+        return await cache.get(getWeeklyPnlCacheKey('Week3')) ?? [];
     }
 
     if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
         TOP_25_PNL_TRADERS = await cache.get(getWeeklyPnlCacheKey()) ?? [];
-        if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
-            await setWeeklyTradingEvent();
-        }
+        // if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
+        //     await setWeeklyTradingEvent();
+        // }
     }
 
     return TOP_25_PNL_TRADERS;
 }
 
 export async function getRankingOfTrader(address: string, target: string = 'None') {
-    if (target == 'MAIN') {
-        const rankingData = await cache.get(RANKING_CACHE_KEY) ?? [];
-        return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
-    }
     if (target != 'None') {
-        const rankingData = await cache.get(PNL_CACHE_KEY + "_" + target) ?? [];
-        return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
+        if (target == 'MAIN') {
+            const rankingData = await cache.get(RANKING_CACHE_KEY) ?? [];
+            return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
+        } else {
+            const rankingData = await cache.get(getWeeklyPnlCacheKey(target)) ?? [];
+            return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
+        }
+    }
+    if (WEEKLY_EVENT_TARGET == 'END') {
+        return await cache.get(getWeeklyRankingCacheKey('Week3')) ?? {};
     }
 
     if (!TRADING_EVENT_RANKING_DATA || Object.keys(TRADING_EVENT_RANKING_DATA).length === 0) {
-        TRADING_EVENT_RANKING_DATA = await cache.get(getWeeklyRankingCacheKey());
+        TRADING_EVENT_RANKING_DATA = await cache.get(getWeeklyRankingCacheKey()) ?? {};
         if (!TRADING_EVENT_RANKING_DATA || Object.keys(TRADING_EVENT_RANKING_DATA).length === 0) {
             return {};
         }
