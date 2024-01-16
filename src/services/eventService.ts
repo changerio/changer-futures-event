@@ -35,9 +35,6 @@ const TV_CACHE_KEY = 'tv_ranking';
 const RANKING_CACHE_KEY = 'ranking_data';
 
 let WEEKLY_EVENT_TARGET: string;
-let WEEKLY_PNL_CACHE_KEY: string;
-let WEEKLY_TV_CACHE_KEY: string;
-let WEEKLY_RANKING_CACHE_KEY: string;
 
 let TOP_25_PNL_TRADERS: RankingInfo[] = [];
 let TOP_25_TV_TRADERS: RankingInfo[] = [];
@@ -80,9 +77,7 @@ export function setWeeklyEventTarget() {
     } else {
         WEEKLY_EVENT_TARGET = 'END';
     }
-    WEEKLY_PNL_CACHE_KEY = PNL_CACHE_KEY + "_" + WEEKLY_EVENT_TARGET;
-    WEEKLY_TV_CACHE_KEY = TV_CACHE_KEY + "_" + WEEKLY_EVENT_TARGET;
-    WEEKLY_RANKING_CACHE_KEY = RANKING_CACHE_KEY + "_" + WEEKLY_EVENT_TARGET;
+
     logger.info(`[setWeeklyEventTarget] now: ${now} | target: ${WEEKLY_EVENT_TARGET}`);
     return WEEKLY_EVENT_TARGET;
 }
@@ -93,6 +88,15 @@ export function getWeeklyEventTarget() {
     }
     return WEEKLY_EVENT_TARGET;
 }
+function getWeeklyPnlCacheKey(target = WEEKLY_EVENT_TARGET) {
+    return `${PNL_CACHE_KEY}_${target}`;
+}
+function getWeeklyTvCacheKey(target = WEEKLY_EVENT_TARGET) {
+    return `${TV_CACHE_KEY}_${target}`;
+}
+function getWeeklyRankingCacheKey(target = WEEKLY_EVENT_TARGET) {
+    return `${RANKING_CACHE_KEY}_${target}`;
+}
 
 export async function upsertTradingEvent() {
     let rankingInfos: RankingInfo[];
@@ -100,9 +104,9 @@ export async function upsertTradingEvent() {
     const target = getWeeklyEventTarget();
 
     if (!TOP_25_PNL_TRADERS || !TOP_25_TV_TRADERS || !TRADING_EVENT_RANKING_DATA || Object.keys(TRADING_EVENT_RANKING_DATA).length === 0) {
-        TOP_25_PNL_TRADERS = await cache.get(WEEKLY_PNL_CACHE_KEY);
-        TOP_25_TV_TRADERS = await cache.get(WEEKLY_TV_CACHE_KEY);
-        TRADING_EVENT_RANKING_DATA = await cache.get(WEEKLY_RANKING_CACHE_KEY);
+        TOP_25_PNL_TRADERS = await cache.get(getWeeklyPnlCacheKey());
+        TOP_25_TV_TRADERS = await cache.get(getWeeklyTvCacheKey());
+        TRADING_EVENT_RANKING_DATA = await cache.get(getWeeklyRankingCacheKey());
         logger.info(`Read cache`);
     }
 
@@ -131,7 +135,7 @@ export async function setMainnetOpenEvent() {
 export async function setWeeklyTradingEvent() {
     const originTarget = WEEKLY_EVENT_TARGET;
     setWeeklyEventTarget();
-    
+
     if (WEEKLY_EVENT_TARGET == 'END') {
         return;
     } else if (originTarget != WEEKLY_EVENT_TARGET) {
@@ -415,22 +419,28 @@ export async function getRankingOfPnlRealTime(chain: string, startTimestamp: str
     return pnlRanking; //topTrader;
 }
 
-async function saveTradingEventRanking(rankingInfos: RankingInfo[]) {
+async function saveTradingEventRanking(rankingInfos: RankingInfo[], target: string = WEEKLY_EVENT_TARGET) {
     const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent).map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
     const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv).map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
 
-    TOP_25_PNL_TRADERS = pnlRanking.slice(0, 25);
-    TOP_25_TV_TRADERS = tvRanking.slice(0, 25);
+    const topPnlRanking = pnlRanking.slice(0, 25);
+    const topTvRanking = tvRanking.slice(0, 25);
     const pnlAndTvRanking = combineLists(pnlRanking, tvRanking);
-    TRADING_EVENT_RANKING_DATA = pnlAndTvRanking.reduce((acc, current) => {
+    const rankingData = pnlAndTvRanking.reduce((acc, current) => {
         acc[current.address] = current;
         return acc;
     }, {});
 
-    await cache.set(END_TIMESTAMP_KEY, (maxCloseTimestamp + 1).toString());
-    await cache.set(WEEKLY_PNL_CACHE_KEY, TOP_25_PNL_TRADERS);
-    await cache.set(WEEKLY_TV_CACHE_KEY, TOP_25_TV_TRADERS);
-    await cache.set(WEEKLY_RANKING_CACHE_KEY, TRADING_EVENT_RANKING_DATA);
+    await cache.set(getWeeklyPnlCacheKey(target), topPnlRanking);
+    await cache.set(getWeeklyTvCacheKey(target), topTvRanking);
+    await cache.set(getWeeklyRankingCacheKey(target), rankingData);
+
+    if (target == WEEKLY_EVENT_TARGET) {
+        await cache.set(END_TIMESTAMP_KEY, (maxCloseTimestamp + 1).toString());
+        TOP_25_PNL_TRADERS = topPnlRanking;
+        TOP_25_TV_TRADERS = topTvRanking
+        TRADING_EVENT_RANKING_DATA = rankingData;
+    }
 
     return { pnlRanking, tvRanking };
 }
@@ -462,7 +472,7 @@ export async function getRankingOfTradingVolume(target: string = 'None') {
     }
 
     if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
-        TOP_25_TV_TRADERS = await cache.get(WEEKLY_TV_CACHE_KEY) ?? [];
+        TOP_25_TV_TRADERS = await cache.get(getWeeklyTvCacheKey()) ?? [];
         if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
             await setWeeklyTradingEvent();
         }
@@ -480,7 +490,7 @@ export async function getRankingOfPnl(target: string = 'None') {
     }
 
     if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
-        TOP_25_PNL_TRADERS = await cache.get(WEEKLY_PNL_CACHE_KEY) ?? [];
+        TOP_25_PNL_TRADERS = await cache.get(getWeeklyPnlCacheKey()) ?? [];
         if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
             await setWeeklyTradingEvent();
         }
@@ -500,7 +510,7 @@ export async function getRankingOfTrader(address: string, target: string = 'None
     }
 
     if (!TRADING_EVENT_RANKING_DATA || Object.keys(TRADING_EVENT_RANKING_DATA).length === 0) {
-        TRADING_EVENT_RANKING_DATA = await cache.get(WEEKLY_RANKING_CACHE_KEY);
+        TRADING_EVENT_RANKING_DATA = await cache.get(getWeeklyRankingCacheKey());
         if (!TRADING_EVENT_RANKING_DATA || Object.keys(TRADING_EVENT_RANKING_DATA).length === 0) {
             return {};
         }
@@ -514,16 +524,13 @@ export async function clearWeeklyEvent(target: string = 'None') {
         target = getWeeklyEventTarget();
     }
 
-    TOP_25_PNL_TRADERS = [];
-    TOP_25_TV_TRADERS = [];
-    TRADING_EVENT_RANKING_DATA = {};
+    await cache.remove(getWeeklyPnlCacheKey(target));
+    await cache.remove(getWeeklyTvCacheKey(target));
+    await cache.remove(getWeeklyRankingCacheKey(target));
 
-    await cache.remove(END_TIMESTAMP_KEY)
-    await cache.remove(WEEKLY_PNL_CACHE_KEY);
-    await cache.remove(WEEKLY_TV_CACHE_KEY);
-    await cache.remove(WEEKLY_RANKING_CACHE_KEY);
-
-    setWeeklyTradingEvent();
+    const traders: any = await getTradersWithCloseTrades(ALL_NETWORK_STR, START_TIMESTAMP[target], END_TIMESTAMP[target]);
+    let rankingInfos: RankingInfo[] = await makeRankingInfos(traders);
+    await saveTradingEventRanking(rankingInfos, target);
 }
 
 async function getTradersWithCloseTrades(chain: string = ALL_NETWORK_STR, startTimestamp: string, endTimestamp: string) {
