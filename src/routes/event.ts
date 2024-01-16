@@ -1,6 +1,7 @@
 import { Request, Response, Router } from "express";
 
 import {
+  clearWeeklyEvent,
   getRankingOfPnl,
   getRankingOfTrader,
   getRankingOfTradingVolume,
@@ -303,6 +304,13 @@ eventRouter.get("/weekly/info", async (req: Request, res: Response) => {
  *        example: 'Week1'
  *        schema:
  *          type: string
+ *      - name: isCsv
+ *        in: query
+ *        requires: false
+ *        description: CSV(plain text) or Object
+ *        example: 'false'
+ *        schema:
+ *          type: string
  *    responses:
  *      200:
  *        description: OK
@@ -312,8 +320,16 @@ eventRouter.get("/weekly/info", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/weekly/tv", async (req: Request, res: Response) => {
+  const isCsv: boolean = req.query.isCsv ? ((req.query.isCsv as string).toLowerCase() === "true" ? true : false) : false;
   const target: string = req.query.target as string ?? 'None';
-  const ret = await getRankingOfTradingVolume(target);
+  const ret: any[] = await getRankingOfTradingVolume(target);
+
+  if (isCsv) {
+    const retCSV: string[] = [];
+    ret.forEach((data) => retCSV.push(`${data.address},${data.tradeCount},${data.tv},${data.pnl},${data.avgLeverage},${data.avgPnlPercent},${data.sumPnlPercent},${data.tvRanking},${data.pnlRanking}`))
+    return res.status(200).send("address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n"));
+  }
+
   return res.status(200).send(ret);
 });
 
@@ -345,6 +361,34 @@ eventRouter.get("/weekly/user", async (req: Request, res: Response) => {
     return res.status(200).send({});
   }
   const ret = await getRankingOfTrader(address.toLowerCase());
+  return res.status(200).send(ret);
+});
+
+/**
+ * @swagger
+ * /event/weekly/clear/:
+ *   delete:
+ *    summary: clear weekly trading event
+ *    tags: [Event]
+ *    parameters:
+ *      - name: target
+ *        in: query
+ *        requires: false
+ *        description: Week1 | Week2 | Week3
+ *        example: 'Week1'
+ *        schema:
+ *          type: string
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          application/json:
+ *             schema:
+ *              type: object
+ */
+eventRouter.delete("/weekly/clear", async (req: Request, res: Response) => {
+  const target: string = req.query.target as string ?? 'None';
+  const ret = await clearWeeklyEvent(target);
   return res.status(200).send(ret);
 });
 

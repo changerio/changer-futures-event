@@ -69,7 +69,7 @@ export function setWeeklyEventTarget() {
     const now = Math.round(Date.now() / 1000);
     if (now >= parseInt(START_TIMESTAMP.Week00) && now < parseInt(END_TIMESTAMP.Week00)) {
         WEEKLY_EVENT_TARGET = 'Week00'; // test
-    } else if (now >= parseInt(START_TIMESTAMP.Week1) && now < parseInt(END_TIMESTAMP.Week1)) {
+    } else if (now >= parseInt(START_TIMESTAMP.Week01) && now < parseInt(END_TIMESTAMP.Week01)) {
         WEEKLY_EVENT_TARGET = 'Week01'; // test
     } else if (now >= parseInt(START_TIMESTAMP.Week1) && now < parseInt(END_TIMESTAMP.Week1)) {
         WEEKLY_EVENT_TARGET = 'Week1';
@@ -129,8 +129,9 @@ export async function setMainnetOpenEvent() {
 }
 
 export async function setWeeklyTradingEvent() {
-    const originTarget = WEEKLY_EVENT_TARGET;
     setWeeklyEventTarget();
+    
+    const originTarget = WEEKLY_EVENT_TARGET;
     if (WEEKLY_EVENT_TARGET == 'END') {
         return;
     } else if (originTarget != WEEKLY_EVENT_TARGET) {
@@ -506,6 +507,22 @@ export async function getRankingOfTrader(address: string, target: string = 'None
     }
 
     return TRADING_EVENT_RANKING_DATA.hasOwnProperty(address) ? TRADING_EVENT_RANKING_DATA[address] : {};
+}
+
+export async function clearWeeklyEvent(target: string = 'None') {
+    if (!target || target == 'None') {
+        target = getWeeklyEventTarget();
+    }
+
+    TOP_25_PNL_TRADERS = [];
+    TOP_25_TV_TRADERS = [];
+    TRADING_EVENT_RANKING_DATA = {};
+
+    await cache.remove(WEEKLY_PNL_CACHE_KEY);
+    await cache.remove(WEEKLY_TV_CACHE_KEY);
+    await cache.remove(WEEKLY_RANKING_CACHE_KEY);
+
+    setWeeklyTradingEvent();
 }
 
 async function getTradersWithCloseTrades(chain: string = ALL_NETWORK_STR, startTimestamp: string, endTimestamp: string) {

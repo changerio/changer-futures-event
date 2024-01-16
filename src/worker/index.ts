@@ -82,9 +82,13 @@ const EVENT_END_TIME = 1707264010000; // 2024년 2월 7일 0시 0분 0초 (GMT) 
 
 export const loadWorker = () => {
     // Called once at startup
-    retryUpsertTradingEventOnFailure();
+    // retryUpsertTradingEventOnFailure();
     // retrySetMidnightPairPriceOnFailure();
     // setAPR();
+    const currentTime = (new Date()).getTime();
+    if (currentTime < EVENT_END_TIME) {
+        retrySetWeeklyTradingEventOnFailure();
+    }
 
     // every 10m
     schedule.scheduleJob("*/10 * * * *", () => {
