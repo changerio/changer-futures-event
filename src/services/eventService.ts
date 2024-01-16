@@ -129,9 +129,9 @@ export async function setMainnetOpenEvent() {
 }
 
 export async function setWeeklyTradingEvent() {
+    const originTarget = WEEKLY_EVENT_TARGET;
     setWeeklyEventTarget();
     
-    const originTarget = WEEKLY_EVENT_TARGET;
     if (WEEKLY_EVENT_TARGET == 'END') {
         return;
     } else if (originTarget != WEEKLY_EVENT_TARGET) {
@@ -518,6 +518,7 @@ export async function clearWeeklyEvent(target: string = 'None') {
     TOP_25_TV_TRADERS = [];
     TRADING_EVENT_RANKING_DATA = {};
 
+    await cache.remove(END_TIMESTAMP_KEY)
     await cache.remove(WEEKLY_PNL_CACHE_KEY);
     await cache.remove(WEEKLY_TV_CACHE_KEY);
     await cache.remove(WEEKLY_RANKING_CACHE_KEY);
