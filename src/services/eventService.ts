@@ -12,16 +12,12 @@ logger.info(`trading event target: \n- arbitrum: ${config.subgraph.arbitrum}\n- 
 
 const START_TIMESTAMP = {
     MAIN: '1698969600', // 2023년 11월 3일 0시 0분 0초 (UTC+0)
-    Week00: '1704844800', // 2024년 1월 10일 0시 0분 0초 (UTC+0) for test
-    Week01: '1705017600', // 2024년 1월 12일 0시 0분 0초 (UTC+0) for test
     Week1: '1705449600', // 2024년 1월 17일 0시 0분 0초 (UTC+0)
     Week2: '1706054400', // 2024년 1월 24일 0시 0분 0초 (UTC+0)
     Week3: '1706659200', // 2024년 1월 31일 0시 0분 0초 (UTC+0)
 }
 const END_TIMESTAMP = {
     MAIN: '1704499200', // 2024년 1월 6일 0시 0분 0초 (UTC+0)
-    Week00: '1705017600', // 2024년 1월 12일 0시 0분 0초 (UTC+0) for test
-    Week01: '1705363200', // 2024년 1월 16일 0시 0분 0초 (UTC+0) for test
     Week1: '1706054400', // 2024년 1월 24일 0시 0분 0초 (UTC+0)
     Week2: '1706659200', // 2024년 1월 31일 0시 0분 0초 (UTC+0)
     Week3: '1707264000', // 2024년 2월 7일 0시 0분 0초 (UTC+0)
@@ -64,19 +60,18 @@ function isForex(pairIndex: string) {
 
 export function setWeeklyEventTarget() {
     const now = Math.round(Date.now() / 1000);
-    if (now >= parseInt(START_TIMESTAMP.Week00) && now < parseInt(END_TIMESTAMP.Week00)) {
-        WEEKLY_EVENT_TARGET = 'Week00'; // test
-    } else if (now >= parseInt(START_TIMESTAMP.Week01) && now < parseInt(END_TIMESTAMP.Week01)) {
-        WEEKLY_EVENT_TARGET = 'Week01'; // test
-    } else if (now >= parseInt(START_TIMESTAMP.Week1) && now < parseInt(END_TIMESTAMP.Week1)) {
-        WEEKLY_EVENT_TARGET = 'Week1';
-    } else if (now >= parseInt(START_TIMESTAMP.Week2) && now < parseInt(END_TIMESTAMP.Week2)) {
-        WEEKLY_EVENT_TARGET = 'Week2';
-    } else if (now >= parseInt(START_TIMESTAMP.Week3) && now < parseInt(END_TIMESTAMP.Week3)) {
-        WEEKLY_EVENT_TARGET = 'Week3';
-    } else {
-        WEEKLY_EVENT_TARGET = 'END';
+    let target = 'END';
+
+    for (const key in START_TIMESTAMP) {
+        if (START_TIMESTAMP.hasOwnProperty(key)) {
+            if (now >= parseInt(START_TIMESTAMP[key]) && now < parseInt(END_TIMESTAMP[key])) {
+                target = key;
+                break;
+            }
+        }
     }
+
+    WEEKLY_EVENT_TARGET = target;
 
     logger.info(`[setWeeklyEventTarget] now: ${now} | target: ${WEEKLY_EVENT_TARGET}`);
     return WEEKLY_EVENT_TARGET;
