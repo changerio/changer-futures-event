@@ -25,6 +25,18 @@ const END_TIMESTAMP = {
     Week3: '1707264000', // 2024년 2월 7일 0시 0분 0초 (UTC+0)
 }
 
+interface RankingInfo {
+    address: string,
+    tradeCount: number,
+    tv: number,
+    pnl: number,
+    avgLeverage: number,
+    avgPnlPercent: number,
+    sumPnlPercent: number,
+    pnlRanking: number,
+    tvRanking: number,
+}
+
 const cache = getEventCache();
 const END_TIMESTAMP_KEY = 'ranking_timestamp'; // 마지막 endtime
 
@@ -38,18 +50,6 @@ let TOP_25_PNL_TRADERS: RankingInfo[] = [];
 let TOP_25_TV_TRADERS: RankingInfo[] = [];
 let TRADING_EVENT_RANKING_DATA: { [key: string]: RankingInfo } = {};
 let maxCloseTimestamp = 0;
-
-interface RankingInfo {
-    address: string,
-    tradeCount: number,
-    tv: number,
-    pnl: number,
-    avgLeverage: number,
-    avgPnlPercent: number,
-    sumPnlPercent: number,
-    pnlRanking: number,
-    tvRanking: number,
-}
 
 function createRankingData(address: string, tradeCount: number, tv: number, pnl: number, avgLeverage: number,
     avgPnlPercent: number, sumPnlPercent: number, tvRanking: number = -1, pnlRanking: number = -1): RankingInfo {
@@ -602,4 +602,49 @@ function pad0ToNum(num: number): string {
     }
 
     return String(num);
+}
+
+// stat api
+export async function getRankingOfTradingVolumeRealTime(chain: string, startTimestamp: string, endTimestamp: string, isCsv: boolean = false) {
+    let rankingInfos: RankingInfo[];
+    if (startTimestamp != '0') {
+        const closeTrades: any = await getCloseTrades(chain, startTimestamp, endTimestamp);
+        rankingInfos = await makeRankingInfosFromCloseTrades(closeTrades);
+    } else {
+        const traders: any = await getTradersWithCloseTrades(chain, startTimestamp, endTimestamp);
+        rankingInfos = await makeRankingInfos(traders);
+    }
+
+    const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv).map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
+    // const topTrader = tvRanking.slice(0, 100);
+
+    if (isCsv) {
+        const retCSV: string[] = [];
+        tvRanking.forEach((trader) => retCSV.push(`${trader.address},${trader.tradeCount},${trader.tv},${trader.pnl},${trader.avgLeverage},${trader.avgPnlPercent},${trader.sumPnlPercent},${trader.tvRanking},${trader.pnlRanking}`))
+        return "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n");
+    }
+
+    return tvRanking; //topTrader;
+}
+
+export async function getRankingOfPnlRealTime(chain: string, startTimestamp: string, endTimestamp: string, isCsv: boolean = false) {
+    let rankingInfos: RankingInfo[];
+    if (startTimestamp != '0') {
+        const closeTrades: any = await getCloseTrades(chain, startTimestamp, endTimestamp);
+        rankingInfos = await makeRankingInfosFromCloseTrades(closeTrades);
+    } else {
+        const traders: any = await getTradersWithCloseTrades(chain, startTimestamp, endTimestamp);
+        rankingInfos = await makeRankingInfos(traders);
+    }
+
+    const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent).map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
+    //const topTrader = pnlRanking.slice(0, 100);
+
+    if (isCsv) {
+        const retCSV: string[] = [];
+        pnlRanking.forEach((trader) => retCSV.push(`${trader.address},${trader.tradeCount},${trader.tv},${trader.pnl},${trader.avgLeverage},${trader.avgPnlPercent},${trader.sumPnlPercent},${trader.tvRanking},${trader.pnlRanking}`))
+        return "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n");
+    }
+
+    return pnlRanking; //topTrader;
 }
