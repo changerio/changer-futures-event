@@ -526,6 +526,14 @@ export async function getRankingOfTrader(address: string, target: string = 'None
     return TRADING_EVENT_RANKING_DATA.hasOwnProperty(address) ? TRADING_EVENT_RANKING_DATA[address] : {};
 }
 
+export async function getAllRankingOfTradingVolume(target: string = 'Week1') {
+    const rankingMap = await cache.get(getWeeklyRankingCacheKey(target)) ?? undefined;
+    if (!rankingMap) {
+        return [];
+    }
+    return Object.values(rankingMap);
+}
+
 export async function clearWeeklyEvent(target: string = 'None') {
     if (!target || target == 'None') {
         target = getWeeklyEventTarget();
