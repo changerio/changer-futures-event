@@ -10,6 +10,8 @@ const zksyncEraGraphQL: GambitGraphQL = new GambitGraphQL(config.subgraph.zksync
 const targetGraphQL = [arbitrumGraphQL, zksyncEraGraphQL];
 logger.info(`trading event target: \n- arbitrum: ${config.subgraph.arbitrum}\n- zksyncEra: ${config.subgraph.zksync}`);
 
+// Weekly 이벤트 진행시 START_TIMESTAMP, END_TIMESTAMP 데이터 수정
+// + worker의 EVENT_END_TIME 수정
 const START_TIMESTAMP = {
     MAIN: '1698969600', // 2023년 11월 3일 0시 0분 0초 (UTC+0)
     Week1: '1705449600', // 2024년 1월 17일 0시 0분 0초 (UTC+0)
@@ -58,6 +60,7 @@ function isForex(pairIndex: string) {
     return pairIndex == "4" || pairIndex == "5" || pairIndex == "6" || pairIndex == "7";
 }
 
+// 현재 시각 기준 어느 이벤트 구간에 속하는지 target 값 설정
 export function setWeeklyEventTarget() {
     const now = Math.round(Date.now() / 1000);
     let target = 'END';
@@ -93,6 +96,8 @@ function getWeeklyRankingCacheKey(target = WEEKLY_EVENT_TARGET) {
     return `${RANKING_CACHE_KEY}_${target}`;
 }
 
+// TradingEvent 데이터가 없다면 insert, 
+// 있다면 마지막 trade 이후의 trade 를 가져와서 변경분 update
 export async function upsertTradingEvent() {
     let rankingInfos: RankingInfo[];
     let startTimestamp: string = await cache.get(END_TIMESTAMP_KEY) ?? '0';
@@ -121,12 +126,14 @@ export async function upsertTradingEvent() {
     return await saveTradingEventRanking(rankingInfos);
 }
 
+// mainnet open event 데이터 reset
 export async function setMainnetOpenEvent() {
     const traders: any = await getTradersWithCloseTrades(ALL_NETWORK_STR, START_TIMESTAMP.MAIN, END_TIMESTAMP.MAIN);
     let rankingInfos: RankingInfo[] = await makeRankingInfos(traders);
     return await saveTradingEventRanking(rankingInfos);
 }
 
+// 현재 tartget 의 trading event 데이터 셋팅
 export async function setWeeklyTradingEvent() {
     const originTarget = WEEKLY_EVENT_TARGET;
     setWeeklyEventTarget();
@@ -210,6 +217,7 @@ function _parseCloseTrades(network: string, traders, isAggregate: boolean, ret: 
     }
 }
 
+// 통계 정보 뽑을때 사용
 export async function getDailyCloseTrade(chain: string, isAggregate: boolean = true, isCsv: boolean = true) {
     // tv & num
     const ret = new Map<String, { tradeVolume: number, tradeNum: number, newTrader: number, pnl: number, toTreasury: number, closeFee: number, openFee: number }>()
@@ -370,50 +378,6 @@ async function updateRankingInfosFromCloseTrades(closeTrades) {
     return rankingInfos;
 }
 
-export async function getRankingOfTradingVolumeRealTime(chain: string, startTimestamp: string, endTimestamp: string, isCsv: boolean = false) {
-    let rankingInfos: RankingInfo[];
-    if (startTimestamp != '0') {
-        const closeTrades: any = await getCloseTrades(chain, startTimestamp, endTimestamp);
-        rankingInfos = await makeRankingInfosFromCloseTrades(closeTrades);
-    } else {
-        const traders: any = await getTradersWithCloseTrades(chain, startTimestamp, endTimestamp);
-        rankingInfos = await makeRankingInfos(traders);
-    }
-
-    const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv).map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
-    // const topTrader = tvRanking.slice(0, 100);
-
-    if (isCsv) {
-        const retCSV: string[] = [];
-        tvRanking.forEach((trader) => retCSV.push(`${trader.address},${trader.tradeCount},${trader.tv},${trader.pnl},${trader.avgLeverage},${trader.avgPnlPercent},${trader.sumPnlPercent},${trader.tvRanking},${trader.pnlRanking}`))
-        return "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n");
-    }
-
-    return tvRanking; //topTrader;
-}
-
-export async function getRankingOfPnlRealTime(chain: string, startTimestamp: string, endTimestamp: string, isCsv: boolean = false) {
-    let rankingInfos: RankingInfo[];
-    if (startTimestamp != '0') {
-        const closeTrades: any = await getCloseTrades(chain, startTimestamp, endTimestamp);
-        rankingInfos = await makeRankingInfosFromCloseTrades(closeTrades);
-    } else {
-        const traders: any = await getTradersWithCloseTrades(chain, startTimestamp, endTimestamp);
-        rankingInfos = await makeRankingInfos(traders);
-    }
-
-    const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent).map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
-    //const topTrader = pnlRanking.slice(0, 100);
-
-    if (isCsv) {
-        const retCSV: string[] = [];
-        pnlRanking.forEach((trader) => retCSV.push(`${trader.address},${trader.tradeCount},${trader.tv},${trader.pnl},${trader.avgLeverage},${trader.avgPnlPercent},${trader.sumPnlPercent},${trader.tvRanking},${trader.pnlRanking}`))
-        return "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n");
-    }
-
-    return pnlRanking; //topTrader;
-}
-
 async function saveTradingEventRanking(rankingInfos: RankingInfo[], target: string = WEEKLY_EVENT_TARGET) {
     const pnlRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.sumPnlPercent - a.sumPnlPercent).map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
     const tvRanking = rankingInfos.filter((data) => data.tv > 0).sort((a, b) => b.tv - a.tv).map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
@@ -472,9 +436,6 @@ export async function getRankingOfTradingVolume(target: string = 'None') {
 
     if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
         TOP_25_TV_TRADERS = await cache.get(getWeeklyTvCacheKey()) ?? [];
-        // if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
-        //     await setWeeklyTradingEvent();
-        // }
     }
 
     return TOP_25_TV_TRADERS;
@@ -494,9 +455,6 @@ export async function getRankingOfPnl(target: string = 'None') {
 
     if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
         TOP_25_PNL_TRADERS = await cache.get(getWeeklyPnlCacheKey()) ?? [];
-        // if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
-        //     await setWeeklyTradingEvent();
-        // }
     }
 
     return TOP_25_PNL_TRADERS;

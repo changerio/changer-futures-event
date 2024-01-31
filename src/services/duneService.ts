@@ -9,11 +9,11 @@ const CACHE_KEY = {
     VAULT_APR: "VAULT_APR",
 }
 
+// Dune 에서 사용하는 Query의 이름과 Id
+// ID: query 편집 url 의 path 에 포함되어 있음
 const QUERY = {
     // public
     Vault_Stats: 3251465,
-
-    // daily 
     Trade_Stats: 3251396,
     Trade_Stats_By_Chain: 3295731,
     Daily_Stats: 3204175,
@@ -24,7 +24,7 @@ const QUERY = {
     Collateral_Ratio_Stats: 3239902,
 
     // private
-    Private_trader: 3226962, // close trade list
+    Private_Trader: 3226962,
 }
 
 let retryCount = 0;
@@ -49,9 +49,10 @@ export async function getAPR(network: string) {
 }
 
 export async function setAPR() {
+    // 최근 실행 결과 가져오기
     const result: DuneExecutionResult = await getQueryResult(QUERY.Vault_Stats);
     if (!result.result || !result.result?.rows) {
-        excuteUsdcAPR();
+        excuteAPRQuery();
         await cache.set(CACHE_KEY.VAULT_APR, DEFAULT_APR);
     }
     await parseAPR(result);
@@ -60,7 +61,7 @@ export async function setAPR() {
 async function parseAPR(result: DuneExecutionResult) {
     if (!result || !result.execution_id || result.state == "QUERY_STATE_PENDING" || !result.result || !result.result?.rows) {
         if (!result || !result.execution_id) {
-            excuteUsdcAPR();
+            excuteAPRQuery();
         } else {
             getExecutionResultWithDelay(result.execution_id, parseAPR);
         }
@@ -89,13 +90,14 @@ async function parseAPR(result: DuneExecutionResult) {
     return true;
 }
 
-export async function excuteUsdcAPR() {
+export async function excuteAPRQuery() {
     retryCount = 0;
     const ret = await executeQuery(QUERY.Vault_Stats);
 
     getExecutionResultWithDelay(ret.execution_id, parseAPR);
 }
 
+// API 실패했을 경우 최근 실행 결과를 다시 가져오는 함수
 async function getExecutionResultWithDelay(executionId: string, callback: Function) {
     retryCount += 1
     if (retryCount < maxRetryCount) {
@@ -110,6 +112,7 @@ async function getExecutionResultWithDelay(executionId: string, callback: Functi
     }
 }
 
+// 쿼리 실행
 export async function excuteDashboardQuery() {
     await executeQuery(QUERY.Vault_Stats); // Get APR
     await executeQuery(QUERY.Trade_Stats);

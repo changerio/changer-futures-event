@@ -1,7 +1,7 @@
 import { Request, Response, Router } from "express";
 import { ALL_NETWORK_STR } from "../config/constants";
 import {
-  getDailyCloseTrade, getRankingOfPnlRealTime, getRankingOfTrader, getRankingOfTradingVolumeRealTime
+  getDailyCloseTrade
 } from "../services/eventService";
 
 /**

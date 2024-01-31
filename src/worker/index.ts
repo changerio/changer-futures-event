@@ -8,6 +8,8 @@ import { excuteDashboardQuery, setAPR } from "../services/duneService";
 let retryCount = 0;
 const retryMaxCount = 10;
 
+const EVENT_END_TIME = 1707264010000; // 2024년 2월 7일 0시 0분 0초 (GMT) + 10s
+
 async function retryUpsertTradingEventOnFailure() {
     try {
         logger.info(`[retryUpsertTradingEventOnFailure] ${new Date()}`);
@@ -77,13 +79,10 @@ async function retrySetAPROnFailure() {
     }
 }
 
-
-const EVENT_END_TIME = 1707264010000; // 2024년 2월 7일 0시 0분 0초 (GMT) + 10s
-
 export const loadWorker = () => {
     // Called once at startup
     // retryUpsertTradingEventOnFailure();
-    // retrySetMidnightPairPriceOnFailure();
+    retrySetMidnightPairPriceOnFailure();
     // setAPR();
     const currentTime = (new Date()).getTime();
     if (currentTime < EVENT_END_TIME) {
