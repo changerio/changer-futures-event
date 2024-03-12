@@ -1,15 +1,7 @@
 import { getDuneCache } from "../cache";
 import { logger } from "../utils/logger";
-import {
-  DuneExecutionResult,
-  executeQuery,
-  getExecutionResult,
-  getQueryResult,
-} from "../data/dune";
-import {
-  ARBITRUM_NETWORK_STR,
-  ZKSYNCERA_NETWORK_STR,
-} from "../config/constants";
+import { DuneExecutionResult, executeQuery, getExecutionResult, getQueryResult } from "../data/dune";
+import { ARBITRUM_NETWORK_STR, ZKSYNCERA_NETWORK_STR } from "../config/constants";
 
 const cache = getDuneCache();
 
@@ -30,6 +22,14 @@ const QUERY = {
   Trade_Volume_by_Assets: 3214590,
   Close_Trade_Stats: 3221707,
   Collateral_Ratio_Stats: 3239902,
+
+  tx_fee_stats: 3502923,
+  eth_price_by_day: 3502807,
+  order_add_remove_col_stats: 3510597,
+  order_update_tp_sl_stats: 3510369,
+  open_trades: 3502741,
+  close_trades: 3502413,
+  delegation_fees: 3502756,
 
   // private
   Private_Trader: 3226962,
@@ -87,14 +87,10 @@ async function parseAPR(result: DuneExecutionResult) {
 
   try {
     const rows = result.result?.rows;
-    const arbi_usdc_apr =
-      rows[0]?.arbi_USDC_APR_7 * 100 ?? DEFAULT_APR.arbitrum.usdc_apr;
-    const arbi_cng_apr =
-      rows[0]?.arbi_CNG_APR_7 * 100 ?? DEFAULT_APR.arbitrum.cng_apr;
-    const zk_usdc_apr =
-      rows[0]?.zk_USDC_APR_7 * 100 ?? DEFAULT_APR.zksync.usdc_apr;
-    const zk_cng_apr =
-      rows[0]?.zk_CNG_APR_7 * 100 ?? DEFAULT_APR.zksync.cng_apr;
+    const arbi_usdc_apr = rows[0]?.arbi_USDC_APR_7 * 100 ?? DEFAULT_APR.arbitrum.usdc_apr;
+    const arbi_cng_apr = rows[0]?.arbi_CNG_APR_7 * 100 ?? DEFAULT_APR.arbitrum.cng_apr;
+    const zk_usdc_apr = rows[0]?.zk_USDC_APR_7 * 100 ?? DEFAULT_APR.zksync.usdc_apr;
+    const zk_cng_apr = rows[0]?.zk_CNG_APR_7 * 100 ?? DEFAULT_APR.zksync.cng_apr;
     const aprs = {
       arbitrum: { cng_apr: arbi_cng_apr, usdc_apr: arbi_usdc_apr },
       zksync: { cng_apr: zk_cng_apr, usdc_apr: zk_usdc_apr },
@@ -127,17 +123,12 @@ export async function excuteAPRQuery() {
 }
 
 // API 실패했을 경우 최근 실행 결과를 다시 가져오는 함수
-async function getExecutionResultWithDelay(
-  executionId: string,
-  callback: Function
-) {
+async function getExecutionResultWithDelay(executionId: string, callback: Function) {
   retryCount += 1;
   if (retryCount < maxRetryCount) {
     setTimeout(async () => {
       try {
-        const result: DuneExecutionResult = await getExecutionResult(
-          executionId
-        );
+        const result: DuneExecutionResult = await getExecutionResult(executionId);
         callback(result);
       } catch (error) {
         getExecutionResultWithDelay(executionId, callback);
@@ -156,4 +147,12 @@ export async function excuteDashboardQuery() {
   await executeQuery(QUERY.Open_Trade_by_Assets);
   await executeQuery(QUERY.Trade_Volume_by_Assets);
   await executeQuery(QUERY.Close_Trade_Stats);
+
+  await executeQuery(QUERY.delegation_fees);
+  await executeQuery(QUERY.close_trades);
+  await executeQuery(QUERY.open_trades);
+  await executeQuery(QUERY.order_update_tp_sl_stats);
+  await executeQuery(QUERY.order_add_remove_col_stats);
+  await executeQuery(QUERY.eth_price_by_day);
+  await executeQuery(QUERY.tx_fee_stats);
 }
