@@ -33,7 +33,8 @@ const queryRouter = Router();
  *              type: object
  */
 queryRouter.get("/vault/apr", async (req: Request, res: Response) => {
-  const network: string = (req.query.network as string).toLowerCase() ?? ALL_NETWORK_STR;
+  const network: string =
+    (req.query.network as string).toLowerCase() ?? ALL_NETWORK_STR;
 
   const ret = await getAPR(network);
 
@@ -41,4 +42,3 @@ queryRouter.get("/vault/apr", async (req: Request, res: Response) => {
 });
 
 export { queryRouter };
-

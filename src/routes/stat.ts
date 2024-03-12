@@ -1,7 +1,9 @@
 import { Request, Response, Router } from "express";
 import { ALL_NETWORK_STR } from "../config/constants";
 import {
-  getDailyCloseTrade, getRankingOfPnlRealTime, getRankingOfTradingVolumeRealTime
+  getDailyCloseTrade,
+  getRankingOfPnlRealTime,
+  getRankingOfTradingVolumeRealTime,
 } from "../services/eventService";
 
 /**
@@ -26,7 +28,7 @@ const statRouter = Router();
  *        example: 'true'
  *        schema:
  *          type: string
-  *      - name: isCsv
+ *      - name: isCsv
  *        in: query
  *        requires: true
  *        description: CSV(plain text) or Object
@@ -49,15 +51,17 @@ const statRouter = Router();
  *              type: object
  */
 statRouter.get("/day-trade", async (req: Request, res: Response) => {
-  const isAggregate: boolean = (req.query.isAggregate as string).toLowerCase() === "true" ? true : false;
-  const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
-  const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
+  const isAggregate: boolean =
+    (req.query.isAggregate as string).toLowerCase() === "true" ? true : false;
+  const isCsv: boolean =
+    (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+  const chain: string =
+    (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
 
   const ret = await getDailyCloseTrade(chain, isAggregate, isCsv);
 
   return res.status(200).send(ret);
 });
-
 
 /**
  * @swagger
@@ -87,7 +91,7 @@ statRouter.get("/day-trade", async (req: Request, res: Response) => {
  *        example: '1698626878'
  *        schema:
  *          type: string
-  *      - name: isCsv
+ *      - name: isCsv
  *        in: query
  *        requires: false
  *        description: CSV(plain text) or Object
@@ -103,11 +107,18 @@ statRouter.get("/day-trade", async (req: Request, res: Response) => {
  *              type: object
  */
 statRouter.get("/tv/realtime", async (req: Request, res: Response) => {
-  const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
-  const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
-  const startTimestamp: string = req.query.startTimestamp as string ?? '0';
+  const isCsv: boolean =
+    (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+  const chain: string =
+    (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
+  const startTimestamp: string = (req.query.startTimestamp as string) ?? "0";
   const endTimestamp: string = req.query.endTimestamp as string;
-  const ret = await getRankingOfTradingVolumeRealTime(chain, startTimestamp, endTimestamp, isCsv);
+  const ret = await getRankingOfTradingVolumeRealTime(
+    chain,
+    startTimestamp,
+    endTimestamp,
+    isCsv
+  );
 
   return res.status(200).send(ret);
 });
@@ -140,7 +151,7 @@ statRouter.get("/tv/realtime", async (req: Request, res: Response) => {
  *        example: '1698626878'
  *        schema:
  *          type: string
-  *      - name: isCsv
+ *      - name: isCsv
  *        in: query
  *        requires: false
  *        description: CSV(plain text) or Object
@@ -156,11 +167,18 @@ statRouter.get("/tv/realtime", async (req: Request, res: Response) => {
  *              type: object
  */
 statRouter.get("/pnl/realtime", async (req: Request, res: Response) => {
-  const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
-  const chain: string = (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
-  const startTimestamp: string = req.query.startTimestamp as string ?? '0';
+  const isCsv: boolean =
+    (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+  const chain: string =
+    (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
+  const startTimestamp: string = (req.query.startTimestamp as string) ?? "0";
   const endTimestamp: string = req.query.endTimestamp as string;
-  const ret = await getRankingOfPnlRealTime(chain, startTimestamp, endTimestamp, isCsv);
+  const ret = await getRankingOfPnlRealTime(
+    chain,
+    startTimestamp,
+    endTimestamp,
+    isCsv
+  );
 
   return res.status(200).send(ret);
 });

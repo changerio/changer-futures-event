@@ -1,10 +1,13 @@
-import { gql } from 'graphql-request';
+import { gql } from "graphql-request";
 
 export const GetCloseTradesOfTraderOver5000 = gql`
   query GetCloseTradesOfTrader($id: ID!) {
     trader(id: $id) {
       closeTradeCount
-      closeTrades(where: {usdcSentToTrader_gte: "5000000000", reason: TAKE_PROFIT}, first: 1000) {
+      closeTrades(
+        where: { usdcSentToTrader_gte: "5000000000", reason: TAKE_PROFIT }
+        first: 1000
+      ) {
         id
         usdcSentToTrader
         percentProfit
@@ -22,11 +25,18 @@ export const GetCloseTradesOfTraderOver5000 = gql`
 export const GetTradersOver5000 = gql`
   query GetTradersOver5000 {
     traders(
-      where: {closeTradeCount_gt: "0", closeTrades_: {usdcSentToTrader_gt: "5000000000"}}, first: 1000
+      where: {
+        closeTradeCount_gt: "0"
+        closeTrades_: { usdcSentToTrader_gt: "5000000000" }
+      }
+      first: 1000
     ) {
       closeTradeCount
       id
-      closeTrades(where: {usdcSentToTrader_gte: "5000000000", reason: TAKE_PROFIT}, first: 1000) {
+      closeTrades(
+        where: { usdcSentToTrader_gte: "5000000000", reason: TAKE_PROFIT }
+        first: 1000
+      ) {
         id
         percentProfit
         usdcSentToTrader
@@ -46,7 +56,10 @@ export const GetCloseTradesOfTraderOnlyProfitForEvent = gql`
   query GetCloseTradesOfTraderOnlyProfit($id: ID!) {
     trader(id: $id) {
       closeTradeCount
-      closeTrades(where: {percentProfit_gt: "0", timestamp_lte: "1686668400"}, first: 1000) {
+      closeTrades(
+        where: { percentProfit_gt: "0", timestamp_lte: "1686668400" }
+        first: 1000
+      ) {
         id
         percentProfit
         usdcSentToTrader
@@ -64,10 +77,13 @@ export const GetCloseTradesOfTraderOnlyProfitForEvent = gql`
 
 export const GetCloseTradesOfTradersOnlyProfitForEvent = gql`
   query GetCloseTradesOfTradersOnlyProfit {
-    traders(where: {closeTrades_: {percentProfit_gt: "0"}}, first: 1000) {
+    traders(where: { closeTrades_: { percentProfit_gt: "0" } }, first: 1000) {
       closeTradeCount
       id
-      closeTrades(where: {percentProfit_gt: "0", timestamp_lte: "1686668400"}, first: 1000) {
+      closeTrades(
+        where: { percentProfit_gt: "0", timestamp_lte: "1686668400" }
+        first: 1000
+      ) {
         id
         percentProfit
         usdcSentToTrader
@@ -82,12 +98,11 @@ export const GetCloseTradesOfTradersOnlyProfitForEvent = gql`
   }
 `;
 
-
 export const GetCloseTradesOfUserForEvent = gql`
   query GetCloseTradesOfUserForEvent($id: ID!) {
     trader(id: $id) {
       closeTradeCount
-      closeTrades(where: {timestamp_lte: "1686668400"}, first: 1000) {
+      closeTrades(where: { timestamp_lte: "1686668400" }, first: 1000) {
         id
         percentProfit
         usdcSentToTrader
@@ -104,10 +119,10 @@ export const GetCloseTradesOfUserForEvent = gql`
 
 export const GetCloseTradesOfUsersForEvent = gql`
   query GetCloseTradesOfUsersForEvent {
-    traders (first: 1000) {
+    traders(first: 1000) {
       closeTradeCount
       id
-      closeTrades(where: {timestamp_lte: "1686668400"}, first: 1000) {
+      closeTrades(where: { timestamp_lte: "1686668400" }, first: 1000) {
         id
         percentProfit
         usdcSentToTrader
@@ -130,45 +145,54 @@ export const GetCloseTradesOfUsersForEvent = gql`
 `;
 
 export const GetVaultDepositUser = gql`
-query GetVaultEventUser($id: ID!, $startTime: String!, $endTime: String!) {
-  trader(id: $id) {
-    id
-    depositShare
-    depositAsset
-    receiveShares(where: {timestamp_gte: $startTime, timestamp_lt: $endTime}) {
+  query GetVaultEventUser($id: ID!, $startTime: String!, $endTime: String!) {
+    trader(id: $id) {
       id
-      share
-      asset
-      timestamp
-    }
-    sendShares {
-      id
-      asset
-      share
-      timestamp
+      depositShare
+      depositAsset
+      receiveShares(
+        where: { timestamp_gte: $startTime, timestamp_lt: $endTime }
+      ) {
+        id
+        share
+        asset
+        timestamp
+      }
+      sendShares {
+        id
+        asset
+        share
+        timestamp
+      }
     }
   }
-}
-`
+`;
 
 export const GetVaultDepositUserList = gql`
-query GetVaultEventUser($first: Int!, $skip: Int!, $startTime: String!, $endTime: String!) {
-  traders(first: $first, skip: $skip) {
-    id
-    depositShare
-    depositAsset
-    receiveShares(where: {timestamp_gte: $startTime, timestamp_lt: $endTime}) {
+  query GetVaultEventUser(
+    $first: Int!
+    $skip: Int!
+    $startTime: String!
+    $endTime: String!
+  ) {
+    traders(first: $first, skip: $skip) {
       id
-      share
-      asset
-      timestamp
-    }
-    sendShares {
-      id
-      asset
-      share
-      timestamp
+      depositShare
+      depositAsset
+      receiveShares(
+        where: { timestamp_gte: $startTime, timestamp_lt: $endTime }
+      ) {
+        id
+        share
+        asset
+        timestamp
+      }
+      sendShares {
+        id
+        asset
+        share
+        timestamp
+      }
     }
   }
-}
-`
+`;

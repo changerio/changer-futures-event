@@ -5,37 +5,41 @@ import swaggerUi from "swagger-ui-express";
 import config from "./config/default";
 
 const options = {
-	swaggerDefinition: {
-		openapi: "3.0.1",
-		info: {
-			title: "Changer-futures-event",
-			version: "1.0.0",
-			description: "Event statics For Gambit",
-		},
-		servers: [
-			{
-				url: "https://service.gambit.trade:7443",
-			},
-			{
-				url: "http://localhost:3000",
-			}
-		],
-		contact: {
-			name: "Changer dana",
-			url: "http://localhost:3000",
-			email: "dana@changpartners.net",
-		},
-	},
-	apis: ["./src/routes/*.ts", './src/swagger/*'],
+  swaggerDefinition: {
+    openapi: "3.0.1",
+    info: {
+      title: "Changer-futures-event",
+      version: "1.0.0",
+      description: "Event statics For Gambit",
+    },
+    servers: [
+      {
+        url: "https://service.gambit.trade:7443",
+      },
+      {
+        url: "http://localhost:3000",
+      },
+    ],
+    contact: {
+      name: "Changer dana",
+      url: "http://localhost:3000",
+      email: "dana@changpartners.net",
+    },
+  },
+  apis: ["./src/routes/*.ts", "./src/swagger/*"],
 };
 
 const swaggerSpec = swaggerJSDoc(options);
 
 var swaggerUiOptions = {
-	explorer: true
+  explorer: true,
 };
 
 // http://localhost:3000/api-docs/
 export const loadSwagger = (app: Application) => {
-	app.use(config.url.swagger, swaggerUi.serve, swaggerUi.setup(swaggerSpec, { explorer: true }));
+  app.use(
+    config.url.swagger,
+    swaggerUi.serve,
+    swaggerUi.setup(swaggerSpec, { explorer: true })
+  );
 };

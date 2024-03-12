@@ -9,7 +9,7 @@ import {
   getWeeklyEventInfo,
   setMainnetOpenEvent,
   setWeeklyTradingEvent,
-  upsertTradingEvent
+  upsertTradingEvent,
 } from "../services/eventService";
 
 /**
@@ -53,7 +53,7 @@ function onlyFromLocal(req: Request) {
  *        example: '2023-10-26'
  *        schema:
  *          type: string
-  *      - name: isCsv
+ *      - name: isCsv
  *        in: query
  *        requires: true
  *        description: CSV(plain text) or Object
@@ -69,12 +69,13 @@ function onlyFromLocal(req: Request) {
  *              type: object
  */
 eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
-  const isCsv: boolean = (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+  const isCsv: boolean =
+    (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
   const startDateStr: string = req.query.startDateStr as string;
   const endDateStr: string = req.query.endDateStr as string;
   // const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
 
-  return res.status(200).send('ok');
+  return res.status(200).send("ok");
 });
 
 /**
@@ -118,7 +119,7 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
   const startDateStr: string = req.query.startDateStr as string;
   const endDateStr: string = req.query.endDateStr as string;
   // const ret = await getVaultEventUserData(address.toLowerCase(), startDateStr, endDateStr);
-  return res.status(200).send('ok');
+  return res.status(200).send("ok");
 });
 
 /**
@@ -286,7 +287,7 @@ eventRouter.post("/weekly/", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/weekly/info", async (req: Request, res: Response) => {
-  const target: string = req.query.target as string ?? 'None';
+  const target: string = (req.query.target as string) ?? "None";
   const ret = await getWeeklyEventInfo(target);
   return res.status(200).send(ret);
 });
@@ -321,14 +322,27 @@ eventRouter.get("/weekly/info", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/weekly/tv", async (req: Request, res: Response) => {
-  const isCsv: boolean = req.query.isCsv ? ((req.query.isCsv as string).toLowerCase() === "true" ? true : false) : false;
-  const target: string = req.query.target as string ?? 'None';
+  const isCsv: boolean = req.query.isCsv
+    ? (req.query.isCsv as string).toLowerCase() === "true"
+      ? true
+      : false
+    : false;
+  const target: string = (req.query.target as string) ?? "None";
   const ret: any[] = await getRankingOfTradingVolume(target);
 
   if (isCsv) {
     const retCSV: string[] = [];
-    ret.forEach((data) => retCSV.push(`${data.address},${data.tradeCount},${data.tv},${data.pnl},${data.avgLeverage},${data.avgPnlPercent},${data.sumPnlPercent},${data.tvRanking},${data.pnlRanking}`))
-    return res.status(200).send("address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n"));
+    ret.forEach((data) =>
+      retCSV.push(
+        `${data.address},${data.tradeCount},${data.tv},${data.pnl},${data.avgLeverage},${data.avgPnlPercent},${data.sumPnlPercent},${data.tvRanking},${data.pnlRanking}`
+      )
+    );
+    return res
+      .status(200)
+      .send(
+        "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" +
+          retCSV.join("\n")
+      );
   }
 
   return res.status(200).send(ret);
@@ -388,7 +402,7 @@ eventRouter.get("/weekly/user", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.delete("/weekly/clear", async (req: Request, res: Response) => {
-  const target: string = req.query.target as string ?? 'None';
+  const target: string = (req.query.target as string) ?? "None";
   const ret = await clearWeeklyEvent(target);
   return res.status(200).send(ret);
 });
@@ -423,14 +437,27 @@ eventRouter.delete("/weekly/clear", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.get("/weekly/tv/all", async (req: Request, res: Response) => {
-  const isCsv: boolean = req.query.isCsv ? ((req.query.isCsv as string).toLowerCase() === "true" ? true : false) : false;
-  const target: string = req.query.target as string ?? 'None';
+  const isCsv: boolean = req.query.isCsv
+    ? (req.query.isCsv as string).toLowerCase() === "true"
+      ? true
+      : false
+    : false;
+  const target: string = (req.query.target as string) ?? "None";
   const ret: any[] = await getAllRankingOfTradingVolume(target);
 
   if (isCsv) {
     const retCSV: string[] = [];
-    ret.forEach((data) => retCSV.push(`${data.address},${data.tradeCount},${data.tv},${data.pnl},${data.avgLeverage},${data.avgPnlPercent},${data.sumPnlPercent},${data.tvRanking},${data.pnlRanking}`))
-    return res.status(200).send("address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" + retCSV.join("\n"));
+    ret.forEach((data) =>
+      retCSV.push(
+        `${data.address},${data.tradeCount},${data.tv},${data.pnl},${data.avgLeverage},${data.avgPnlPercent},${data.sumPnlPercent},${data.tvRanking},${data.pnlRanking}`
+      )
+    );
+    return res
+      .status(200)
+      .send(
+        "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" +
+          retCSV.join("\n")
+      );
   }
 
   return res.status(200).send(ret);

@@ -29,7 +29,9 @@ git clone https://github.com/changerio/changer-futures-event.git
 ```
 
 ### make .env
+
 - example
+
 ```
 NETWORK_NAME=zksyncEraGoerli
 DUNE_API_KEY=
@@ -62,6 +64,6 @@ yarn local
 # generate production build
 npm run build
 
-# run 
+# run
 yarn start
 ```

@@ -1,4 +1,4 @@
-import { gql } from 'graphql-request';
+import { gql } from "graphql-request";
 
 export const GetPair = gql`
   query GetPair($id: ID!) {
@@ -47,55 +47,57 @@ export const GetPair = gql`
 `;
 
 export const GetOpenTradesOfUser = gql`
-query GetOpenTradesOfUser($id: ID!) {
+  query GetOpenTradesOfUser($id: ID!) {
     trader(id: $id) {
-    openLimitOrder(first: 10) {
-      maxPrice
-      minPrice
-    }
-    openTrades(first: 10) {
-      id
-      tradeInfo {
-        id
+      openLimitOrder(first: 10) {
+        maxPrice
+        minPrice
       }
-      trade {
-        buy
+      openTrades(first: 10) {
         id
-        index
-        openPrice
-        leverage
-        pairIndex
-        positionSizeUsdc
-        sl
-        tp
+        tradeInfo {
+          id
+        }
+        trade {
+          buy
+          id
+          index
+          openPrice
+          leverage
+          pairIndex
+          positionSizeUsdc
+          sl
+          tp
+        }
       }
     }
   }
-}`
+`;
 
 export const GetOpenTradesOfUserWherePairIndex = gql`
-query GetOpenTradesOfUser($id: ID!) {
+  query GetOpenTradesOfUser($id: ID!) {
     trader(id: $id) {
-    openLimitOrder(first: 10) {
-      maxPrice
-      minPrice
-    }
-    openTrades(first: 10, where: {trade_: {index: $pairIndex}}) {
-      id
-      tradeInfo {
-        id
+      openLimitOrder(first: 10) {
+        maxPrice
+        minPrice
       }
-      trade {
-        buy
+      openTrades(first: 10, where: { trade_: { index: $pairIndex } }) {
         id
-        index
-        openPrice
-        leverage
-        pairIndex
-        positionSizeUsdc
-        sl
-        tp
+        tradeInfo {
+          id
+        }
+        trade {
+          buy
+          id
+          index
+          openPrice
+          leverage
+          pairIndex
+          positionSizeUsdc
+          sl
+          tp
+        }
       }
     }
   }
-}`
+`;

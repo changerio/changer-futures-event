@@ -1,5 +1,8 @@
 import { Request, Response, Router } from "express";
-import { getMidnightPairPrice, setMidnightPairPrice } from "../services/pythService";
+import {
+  getMidnightPairPrice,
+  setMidnightPairPrice,
+} from "../services/pythService";
 
 /**
  * @swagger
