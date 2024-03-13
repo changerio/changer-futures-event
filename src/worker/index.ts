@@ -2,11 +2,8 @@ import schedule from "node-schedule";
 import { logger } from "../utils/logger";
 
 import { setMidnightPairPrice } from "../services/pythService";
-import {
-  setWeeklyTradingEvent,
-  upsertTradingEvent,
-} from "../services/eventService";
-import { excuteDashboardQuery, setAPR } from "../services/duneService";
+import { setWeeklyTradingEvent, upsertTradingEvent } from "../services/eventService";
+import { excuteDashboardQuery, executeDashboardTwiceDailyQuery, setAPR } from "../services/duneService";
 
 let retryCount = 0;
 const retryMaxCount = 10;
@@ -68,6 +65,20 @@ async function retryExcuteDashboardQueryOnFailure() {
     }
   }
 }
+
+async function retryExcuteDashboardTwiceDailyQueryOnFailure() {
+  try {
+    logger.info(`[retryExcuteDashboardTwiceDailyQueryOnFailure] ${new Date()}`);
+    await executeDashboardTwiceDailyQuery();
+  } catch (e) {
+    retryCount += 1;
+    logger.error(`[retryExcuteDashboardTwiceDailyQueryOnFailure] Fail`);
+    logger.error(e);
+    if (retryCount < retryMaxCount) {
+      // ignore
+    }
+  }
+}
 async function retrySetAPROnFailure() {
   try {
     logger.info(`[retrySetAPROnFailure] ${new Date()}`);
@@ -110,6 +121,12 @@ export const loadWorker = () => {
     if (currentTime < EVENT_END_TIME) {
       retrySetWeeklyTradingEventOnFailure();
     }
+  });
+
+  // twice daily - 00:10:01
+  schedule.scheduleJob("1 10 0 1-31/2 * *", () => {
+    retryCount = 0;
+    retryExcuteDashboardTwiceDailyQueryOnFailure();
   });
 
   // daily - 00:00:30

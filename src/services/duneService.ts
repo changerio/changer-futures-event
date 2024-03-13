@@ -24,11 +24,11 @@ const QUERY = {
   Collateral_Ratio_Stats: 3239902,
 
   tx_fee_stats: 3502923,
-  eth_price_by_day: 3502807,
-  order_add_remove_col_stats: 3510597,
-  order_update_tp_sl_stats: 3510369,
-  open_trades: 3502741,
-  close_trades: 3502413,
+  // eth_price_by_day: 3502807,
+  // order_add_remove_col_stats: 3510597,
+  // order_update_tp_sl_stats: 3510369,
+  // open_trades: 3502741,
+  // close_trades: 3502413,
   delegation_fees: 3502756,
 
   // private
@@ -147,12 +147,9 @@ export async function excuteDashboardQuery() {
   await executeQuery(QUERY.Open_Trade_by_Assets);
   await executeQuery(QUERY.Trade_Volume_by_Assets);
   await executeQuery(QUERY.Close_Trade_Stats);
+}
 
+export async function executeDashboardTwiceDailyQuery() {
   await executeQuery(QUERY.delegation_fees);
-  await executeQuery(QUERY.close_trades);
-  await executeQuery(QUERY.open_trades);
-  await executeQuery(QUERY.order_update_tp_sl_stats);
-  await executeQuery(QUERY.order_add_remove_col_stats);
-  await executeQuery(QUERY.eth_price_by_day);
   await executeQuery(QUERY.tx_fee_stats);
 }
