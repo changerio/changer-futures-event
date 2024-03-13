@@ -15,7 +15,6 @@ settings.json
 
 workspace.-codeworkspace
 
-yarn.lock
 .yarn/*
 !.yarn/patches
 !.yarn/plugins
