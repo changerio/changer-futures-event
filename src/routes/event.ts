@@ -274,7 +274,7 @@ eventRouter.post("/weekly/", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: Week1 | Week2 | Week3
+ *        description: Week1 | Week2 | Week3 | Week4
  *        example: 'Week1'
  *        schema:
  *          type: string
@@ -302,7 +302,7 @@ eventRouter.get("/weekly/info", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: Week1 | Week2 | Week3
+ *        description: Week1 | Week2 | Week3 | Week4
  *        example: 'Week1'
  *        schema:
  *          type: string
@@ -389,7 +389,7 @@ eventRouter.get("/weekly/user", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: Week1 | Week2 | Week3
+ *        description: Week1 | Week2 | Week3 | Week4
  *        example: 'Week1'
  *        schema:
  *          type: string
@@ -417,7 +417,7 @@ eventRouter.delete("/weekly/clear", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: true
- *        description: Week1 | Week2 | Week3
+ *        description: Week1 | Week2 | Week3 | Week4
  *        example: 'Week1'
  *        schema:
  *          type: string

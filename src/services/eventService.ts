@@ -22,17 +22,21 @@ logger.info(
 
 // Weekly 이벤트 진행시 START_TIMESTAMP, END_TIMESTAMP 데이터 수정
 // + worker의 EVENT_END_TIME 수정
-const START_TIMESTAMP = {
-  MAIN: "1698969600", // 2023년 11월 3일 0시 0분 0초 (UTC+0)
-  Week1: "1705449600", // 2024년 1월 17일 0시 0분 0초 (UTC+0)
-  Week2: "1706054400", // 2024년 1월 24일 0시 0분 0초 (UTC+0)
-  Week3: "1706659200", // 2024년 1월 31일 0시 0분 0초 (UTC+0)
+const START_TIMESTAMP = { 
+  // TEST
+  MAIN: "1710806400", // 2024년 3월 19일 0시 0분 0초 (UTC+0) //Edit THIS for monthly trading event
+  Week1: "1710806400", // 2024년 3월 19일 0시 0분 0초 (UTC+0) //Edit THIS for weekly trading event
+  Week2: "1710892800", // 2024년 3월 20일 0시 0분 0초 (UTC+0)
+  Week3: "1710979200", // 2024년 3월 21일 0시 0분 0초 (UTC+0)
+  Week4: "1711065600", // 2024년 3월 22일 0시 0분 0초 (UTC+0)
 };
 const END_TIMESTAMP = {
-  MAIN: "1704499200", // 2024년 1월 6일 0시 0분 0초 (UTC+0)
-  Week1: "1706054400", // 2024년 1월 24일 0시 0분 0초 (UTC+0)
-  Week2: "1706659200", // 2024년 1월 31일 0시 0분 0초 (UTC+0)
-  Week3: "1707264000", // 2024년 2월 7일 0시 0분 0초 (UTC+0)
+  // TEST
+  MAIN: "1711152000", // 2024년 3월 23일 0시 0분 0초 (UTC+0)
+  Week1: "1710892800", // 2024년 3월 20일 0시 0분 0초 (UTC+0)
+  Week2: "1710979200", // 2024년 3월 21일 0시 0분 0초 (UTC+0)
+  Week3: "1711065600", // 2024년 3월 22일 0시 0분 0초 (UTC+0)
+  Week4: "1711152000", // 2024년 3월 23일 0시 0분 0초 (UTC+0)
 };
 
 interface RankingInfo {
@@ -97,7 +101,7 @@ export function setWeeklyEventTarget() {
   let target = "END";
 
   for (const key in START_TIMESTAMP) {
-    if (START_TIMESTAMP.hasOwnProperty(key)) {
+    if (key.toUpperCase() !== "MAIN" && START_TIMESTAMP.hasOwnProperty(key)) {
       if (
         now >= parseInt(START_TIMESTAMP[key]) &&
         now < parseInt(END_TIMESTAMP[key])
@@ -338,7 +342,7 @@ export async function getDailyCloseTrade(
   if (chain === ARBITRUM_NETWORK_STR || chain === ALL_NETWORK_STR) {
     const arbi_traders: any = await getTradersWithCloseTrades(
       ARBITRUM_NETWORK_STR,
-      "0",
+      Math.round(Date.now() / 1000 - 604800).toString(), // past 1 week
       Math.round(Date.now() / 1000).toString()
     );
     _parseCloseTrades(ARBITRUM_NETWORK_STR, arbi_traders, isAggregate, ret);
@@ -347,7 +351,7 @@ export async function getDailyCloseTrade(
   if (chain === ZKSYNCERA_NETWORK_STR || chain === ALL_NETWORK_STR) {
     const zk_traders: any = await getTradersWithCloseTrades(
       ZKSYNCERA_NETWORK_STR,
-      "0",
+      Math.round(Date.now() / 1000 - 604800).toString(), // past 1 week
       Math.round(Date.now() / 1000).toString()
     );
     _parseCloseTrades(ZKSYNCERA_NETWORK_STR, zk_traders, isAggregate, ret);
@@ -415,6 +419,7 @@ async function makeRankingInfos(traders) {
         closeTrade.id == "0xa9b2cbfab2b8be5e080a1a352c5b7de9627192ef-2" &&
         closeTrade.timestamp == 1703486957
       ) {
+        // ref. https://ai3kr.slack.com/archives/C04PUT52ZV1/p1703810974606279
         continue; // LIQUIDATION
       }
       const usdcSentToTrader =
@@ -637,8 +642,8 @@ export async function getRankingOfTradingVolume(target: string = "None") {
       return (await cache.get(getWeeklyTvCacheKey(target))) ?? [];
     }
   }
-  if (WEEKLY_EVENT_TARGET == "END") {
-    return (await cache.get(getWeeklyTvCacheKey("Week3"))) ?? [];
+if (WEEKLY_EVENT_TARGET == "END") {
+    return (await cache.get(getWeeklyTvCacheKey("Week4"))) ?? [];
   }
 
   if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
@@ -656,8 +661,8 @@ export async function getRankingOfPnl(target: string = "None") {
       return (await cache.get(getWeeklyPnlCacheKey(target))) ?? [];
     }
   }
-  if (WEEKLY_EVENT_TARGET == "END") {
-    return (await cache.get(getWeeklyPnlCacheKey("Week3"))) ?? [];
+if (WEEKLY_EVENT_TARGET == "END") {
+    return (await cache.get(getWeeklyPnlCacheKey("Week4"))) ?? [];
   }
 
   if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
@@ -676,12 +681,12 @@ export async function getRankingOfTrader(
       const rankingData = (await cache.get(RANKING_CACHE_KEY)) ?? [];
       return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
     } else {
-      const rankingData = (await cache.get(getWeeklyPnlCacheKey(target))) ?? [];
+      const rankingData = (await cache.get(getWeeklyRankingCacheKey(target))) ?? [];
       return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
     }
   }
-  if (WEEKLY_EVENT_TARGET == "END") {
-    return (await cache.get(getWeeklyRankingCacheKey("Week3"))) ?? {};
+if (WEEKLY_EVENT_TARGET == "END") {
+    return (await cache.get(getWeeklyRankingCacheKey("Week4"))) ?? {};
   }
 
   if (

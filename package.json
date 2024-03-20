@@ -5,7 +5,7 @@
   "scripts": {
     "local": "ts-node-dev ./src/server.ts",
     "build": "tsc",
-    "clean": "rm -rf dist",
+    "clean": "rm -rf dist .cache",
     "start": "node ./dist/src/server.js",
     "test": "jest --verbose",
     "format": "prettier --write ."
