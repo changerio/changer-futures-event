@@ -127,13 +127,19 @@ export function getWeeklyEventTarget() {
   return WEEKLY_EVENT_TARGET;
 }
 function getWeeklyPnlCacheKey(target = WEEKLY_EVENT_TARGET) {
-  return `${PNL_CACHE_KEY}_${target}`;
+  if(target) return `${PNL_CACHE_KEY}_${target}`;
+
+  return PNL_CACHE_KEY;
 }
 function getWeeklyTvCacheKey(target = WEEKLY_EVENT_TARGET) {
-  return `${TV_CACHE_KEY}_${target}`;
+  if(target) return `${TV_CACHE_KEY}_${target}`;
+
+  return TV_CACHE_KEY;
 }
 function getWeeklyRankingCacheKey(target = WEEKLY_EVENT_TARGET) {
-  return `${RANKING_CACHE_KEY}_${target}`;
+  if(target) return `${RANKING_CACHE_KEY}_${target}`;
+
+  return RANKING_CACHE_KEY;
 }
 
 // TradingEvent 데이터가 없다면 insert,
@@ -585,7 +591,7 @@ async function saveTradingEventRanking(
   rankingInfos: RankingInfo[],
   target: string = WEEKLY_EVENT_TARGET
 ) {
-  const pnlRanking = rankingInfos
+    const pnlRanking = rankingInfos
     .filter((data) => data.tv > 0)
     .sort((a, b) => b.sumPnlPercent - a.sumPnlPercent)
     .map((trader, index) => ({ ...trader, pnlRanking: index + 1 }));
@@ -602,7 +608,7 @@ async function saveTradingEventRanking(
     return acc;
   }, {});
 
-  await cache.set(getWeeklyPnlCacheKey(target), topPnlRanking);
+    await cache.set(getWeeklyPnlCacheKey(target), topPnlRanking);
   await cache.set(getWeeklyTvCacheKey(target), topTvRanking);
   await cache.set(getWeeklyRankingCacheKey(target), rankingData);
 
@@ -740,7 +746,7 @@ async function getTradersWithCloseTrades(
   startTimestamp: string,
   endTimestamp: string
 ) {
-  if (chain === ARBITRUM_NETWORK_STR) {
+    if (chain === ARBITRUM_NETWORK_STR) {
     const data = await arbitrumGraphQL.getCloseTradesOfUsersAll(
       startTimestamp,
       endTimestamp
