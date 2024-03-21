@@ -22,7 +22,7 @@ logger.info(
 
 // Weekly 이벤트 진행시 START_TIMESTAMP, END_TIMESTAMP 데이터 수정
 // + worker의 EVENT_END_TIME 수정
-const START_TIMESTAMP = { 
+export const START_TIMESTAMP = { 
   // TEST
   MAIN: "1710806400", // 2024년 3월 19일 0시 0분 0초 (UTC+0) //Edit THIS for monthly trading event
   Week1: "1710806400", // 2024년 3월 19일 0시 0분 0초 (UTC+0) //Edit THIS for weekly trading event
@@ -30,7 +30,7 @@ const START_TIMESTAMP = {
   Week3: "1710979200", // 2024년 3월 21일 0시 0분 0초 (UTC+0)
   Week4: "1711065600", // 2024년 3월 22일 0시 0분 0초 (UTC+0)
 };
-const END_TIMESTAMP = {
+export const END_TIMESTAMP = {
   // TEST
   MAIN: "1711152000", // 2024년 3월 23일 0시 0분 0초 (UTC+0)
   Week1: "1710892800", // 2024년 3월 20일 0시 0분 0초 (UTC+0)

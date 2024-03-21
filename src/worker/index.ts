@@ -2,13 +2,11 @@ import schedule from "node-schedule";
 import { logger } from "../utils/logger";
 
 import { setMidnightPairPrice } from "../services/pythService";
-import { setWeeklyTradingEvent, upsertTradingEvent } from "../services/eventService";
+import { END_TIMESTAMP, setWeeklyTradingEvent, upsertTradingEvent } from "../services/eventService";
 import { excuteDashboardQuery, executeDashboardTwiceDailyQuery, setAPR } from "../services/duneService";
 
 let retryCount = 0;
 const retryMaxCount = 10;
-
-const EVENT_END_TIME = 1707264010000; // 2024년 2월 7일 0시 0분 0초 (GMT) + 10s
 
 async function retryUpsertTradingEventOnFailure() {
   try {
@@ -93,21 +91,32 @@ async function retrySetAPROnFailure() {
   }
 }
 
+function _currentWithInEndTime(): boolean {
+  const currentTime = new Date().getTime();
+
+  for (const key in END_TIMESTAMP) {
+      if (currentTime < parseInt(END_TIMESTAMP[key])) {
+          return false;
+      }
+  }
+  return true;
+}
+
 export const loadWorker = () => {
   // Called once at startup
   // retryUpsertTradingEventOnFailure();
   retrySetMidnightPairPriceOnFailure();
   // setAPR();
-  const currentTime = new Date().getTime();
-  if (currentTime < EVENT_END_TIME) {
+
+  if (_currentWithInEndTime()) {
     retrySetWeeklyTradingEventOnFailure();
   }
 
   // every 10m
   schedule.scheduleJob("*/10 * * * *", () => {
     retryCount = 0;
-    const currentTimestamp = new Date().getTime();
-    if (currentTimestamp < EVENT_END_TIME) {
+
+    if (_currentWithInEndTime()) {
       retryUpsertTradingEventOnFailure();
     }
   });
@@ -117,8 +126,8 @@ export const loadWorker = () => {
     retryCount = 0;
     retryExcuteDashboardQueryOnFailure();
     retrySetMidnightPairPriceOnFailure();
-    const currentTime = new Date().getTime();
-    if (currentTime < EVENT_END_TIME) {
+
+    if (_currentWithInEndTime()) {
       retrySetWeeklyTradingEventOnFailure();
     }
   });
