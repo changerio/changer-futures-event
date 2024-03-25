@@ -274,7 +274,7 @@ eventRouter.post("/weekly/", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: Week1 | Week2 | Week3 | Week4 | null (current week)
+ *        description: MAIN | Week1 | Week2 | Week3 | Week4 | END | undefined (current week)
  *        example: 'Week1'
  *        schema:
  *          type: string

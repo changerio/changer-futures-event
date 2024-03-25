@@ -641,15 +641,16 @@ export async function getWeeklyEventInfo(target: string = "None") {
 }
 
 export async function getRankingOfTradingVolume(target: string = "None") {
+  if (WEEKLY_EVENT_TARGET == "END" || target == "END") {
+    return (await cache.get(getWeeklyTvCacheKey("Week4"))) ?? [];
+  }
+
   if (target != "None") {
     if (target == "MAIN") {
       return (await cache.get(TV_CACHE_KEY)) ?? [];
     } else {
       return (await cache.get(getWeeklyTvCacheKey(target))) ?? [];
     }
-  }
-if (WEEKLY_EVENT_TARGET == "END") {
-    return (await cache.get(getWeeklyTvCacheKey("Week4"))) ?? [];
   }
 
   if (!TOP_25_TV_TRADERS || TOP_25_TV_TRADERS.length === 0) {
@@ -660,15 +661,17 @@ if (WEEKLY_EVENT_TARGET == "END") {
 }
 
 export async function getRankingOfPnl(target: string = "None") {
+
+  if (WEEKLY_EVENT_TARGET == "END" || target == "END") {
+    return (await cache.get(getWeeklyPnlCacheKey("Week4"))) ?? [];
+  }
+
   if (target != "None") {
     if (target == "MAIN") {
       return (await cache.get(PNL_CACHE_KEY)) ?? [];
     } else {
       return (await cache.get(getWeeklyPnlCacheKey(target))) ?? [];
     }
-  }
-if (WEEKLY_EVENT_TARGET == "END") {
-    return (await cache.get(getWeeklyPnlCacheKey("Week4"))) ?? [];
   }
 
   if (!TOP_25_PNL_TRADERS || TOP_25_PNL_TRADERS.length === 0) {
@@ -682,6 +685,12 @@ export async function getRankingOfTrader(
   address: string,
   target: string = "None"
 ) {
+
+
+  if (WEEKLY_EVENT_TARGET == "END" || target == "END") {
+    return (await cache.get(getWeeklyRankingCacheKey("Week4"))) ?? [];
+  }
+
   if (target != "None") {
     if (target == "MAIN") {
       const rankingData = (await cache.get(RANKING_CACHE_KEY)) ?? [];
@@ -690,9 +699,6 @@ export async function getRankingOfTrader(
       const rankingData = (await cache.get(getWeeklyRankingCacheKey(target))) ?? [];
       return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
     }
-  }
-if (WEEKLY_EVENT_TARGET == "END") {
-    return (await cache.get(getWeeklyRankingCacheKey("Week4"))) ?? {};
   }
 
   if (
