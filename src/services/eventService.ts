@@ -8,6 +8,7 @@ import {
   ALL_NETWORK_STR,
 } from "../config/constants";
 import config from "../config/default";
+import { START_TIMESTAMP, END_TIMESTAMP, EVENT_RANK_TV_REWARD_MAP } from "../data/event";
 
 const arbitrumGraphQL: GambitGraphQL = new GambitGraphQL(
   config.subgraph.arbitrum
@@ -20,24 +21,7 @@ logger.info(
   `trading event target: \n- arbitrum: ${config.subgraph.arbitrum}\n- zksyncEra: ${config.subgraph.zksync}`
 );
 
-// Weekly 이벤트 진행시 START_TIMESTAMP, END_TIMESTAMP 데이터 수정
-// + worker의 EVENT_END_TIME 수정
-export const START_TIMESTAMP = { 
-  // TEST
-  MAIN: "1710806400", // 2024년 3월 19일 0시 0분 0초 (UTC+0) //Edit THIS for monthly trading event
-  Week1: "1710806400", // 2024년 3월 19일 0시 0분 0초 (UTC+0) //Edit THIS for weekly trading event
-  Week2: "1710892800", // 2024년 3월 20일 0시 0분 0초 (UTC+0)
-  Week3: "1710979200", // 2024년 3월 21일 0시 0분 0초 (UTC+0)
-  Week4: "1711065600", // 2024년 3월 22일 0시 0분 0초 (UTC+0)
-};
-export const END_TIMESTAMP = {
-  // TEST
-  MAIN: "1711152000", // 2024년 3월 23일 0시 0분 0초 (UTC+0)
-  Week1: "1710892800", // 2024년 3월 20일 0시 0분 0초 (UTC+0)
-  Week2: "1710979200", // 2024년 3월 21일 0시 0분 0초 (UTC+0)
-  Week3: "1711065600", // 2024년 3월 22일 0시 0분 0초 (UTC+0)
-  Week4: "1711152000", // 2024년 3월 23일 0시 0분 0초 (UTC+0)
-};
+
 
 interface RankingInfo {
   address: string;
@@ -49,6 +33,9 @@ interface RankingInfo {
   sumPnlPercent: number;
   pnlRanking: number;
   tvRanking: number;
+  maxRewardTv: number;
+  reward: number;
+  maxReward: number;
 }
 
 const cache = getEventCache();
@@ -57,6 +44,11 @@ const END_TIMESTAMP_KEY = "ranking_timestamp"; // 마지막 endtime
 const PNL_CACHE_KEY = "pnl_ranking";
 const TV_CACHE_KEY = "tv_ranking";
 const RANKING_CACHE_KEY = "ranking_data";
+
+const MAX_CACHING_USER_NUM = 1000;
+const MAX_WEEKLY_DISPLAY_USER_NUM = 7;
+const MAX_MONTHLY_DISPLAY_USER_NUM = 100;
+
 
 let WEEKLY_EVENT_TARGET: string;
 
@@ -86,6 +78,9 @@ function createRankingData(
     sumPnlPercent,
     tvRanking,
     pnlRanking,
+    maxRewardTv :0,
+    reward: 0,
+    maxReward: 0
   };
 }
 
@@ -201,7 +196,7 @@ export async function setMainnetOpenEvent() {
   return await saveTradingEventRanking(rankingInfos);
 }
 
-// 현재 tartget 의 trading event 데이터 셋팅
+// 현재 target 의 trading event 데이터 셋팅
 export async function setWeeklyTradingEvent() {
   const originTarget = WEEKLY_EVENT_TARGET;
   setWeeklyEventTarget();
@@ -600,8 +595,39 @@ async function saveTradingEventRanking(
     .sort((a, b) => b.tv - a.tv)
     .map((trader, index) => ({ ...trader, tvRanking: index + 1 }));
 
-  const topPnlRanking = pnlRanking.slice(0, 25);
-  const topTvRanking = tvRanking.slice(0, 25);
+  // calculate reward according to rank & trading volume
+  const eventMap = EVENT_RANK_TV_REWARD_MAP[target];
+  
+  
+  for(const tvEntity of tvRanking ) {
+    let isInRank = false;
+
+    for(let i = 0; i < eventMap.length  ; i++) {
+      if(tvEntity.tvRanking <= eventMap[i][0]) {
+        for(let j = i; j < eventMap.length; j++) {
+          if(tvEntity.tv >= eventMap[j][1]) {
+            tvEntity.maxRewardTv = eventMap[i][1];
+            tvEntity.maxReward = eventMap[i][2];
+            tvEntity.reward = eventMap[j][2];
+            isInRank = true;
+
+            break;
+          }
+        }
+      }
+      if(isInRank) break;
+    }
+
+    if(!isInRank) {
+      // set default
+      tvEntity.maxRewardTv = eventMap[eventMap.length - 1][1];
+      tvEntity.maxReward = eventMap[eventMap.length - 1][2];
+      tvEntity.reward = 0;
+    }
+  }
+
+  const topPnlRanking = pnlRanking.slice(0, MAX_CACHING_USER_NUM);
+  const topTvRanking = tvRanking.slice(0, MAX_CACHING_USER_NUM);
   const pnlAndTvRanking = combineLists(pnlRanking, tvRanking);
   const rankingData = pnlAndTvRanking.reduce((acc, current) => {
     acc[current.address] = current;
@@ -642,14 +668,17 @@ export async function getWeeklyEventInfo(target: string = "None") {
 
 export async function getRankingOfTradingVolume(target: string = "None") {
   if (WEEKLY_EVENT_TARGET == "END" || target == "END") {
-    return (await cache.get(getWeeklyTvCacheKey("Week4"))) ?? [];
+    const cachedRet = await cache.get(getWeeklyTvCacheKey());
+    return cachedRet ? cachedRet.slice(0, MAX_MONTHLY_DISPLAY_USER_NUM) : [];
   }
 
   if (target != "None") {
     if (target == "MAIN") {
-      return (await cache.get(TV_CACHE_KEY)) ?? [];
+      const cachedRet = await cache.get(TV_CACHE_KEY);
+      return cachedRet ? cachedRet.slice(0, MAX_MONTHLY_DISPLAY_USER_NUM) : [];
     } else {
-      return (await cache.get(getWeeklyTvCacheKey(target))) ?? [];
+      const cachedRet = await cache.get(getWeeklyTvCacheKey(target));
+      return cachedRet ? cachedRet.slice(0, MAX_WEEKLY_DISPLAY_USER_NUM) : [];
     }
   }
 
@@ -663,14 +692,17 @@ export async function getRankingOfTradingVolume(target: string = "None") {
 export async function getRankingOfPnl(target: string = "None") {
 
   if (WEEKLY_EVENT_TARGET == "END" || target == "END") {
-    return (await cache.get(getWeeklyPnlCacheKey("Week4"))) ?? [];
+    const cachedRet = await cache.get(getWeeklyPnlCacheKey());
+    return cachedRet ? cachedRet.slice(0, MAX_MONTHLY_DISPLAY_USER_NUM) : [];
   }
 
   if (target != "None") {
     if (target == "MAIN") {
-      return (await cache.get(PNL_CACHE_KEY)) ?? [];
+      const cachedRet = await cache.get(PNL_CACHE_KEY);
+      return cachedRet ? cachedRet.slice(0, MAX_MONTHLY_DISPLAY_USER_NUM) : [];
     } else {
-      return (await cache.get(getWeeklyPnlCacheKey(target))) ?? [];
+      const cachedRet = await cache.get(getWeeklyPnlCacheKey(target));
+      return cachedRet ? cachedRet.slice(0, MAX_WEEKLY_DISPLAY_USER_NUM) : [];
     }
   }
 
@@ -688,7 +720,9 @@ export async function getRankingOfTrader(
 
 
   if (WEEKLY_EVENT_TARGET == "END" || target == "END") {
-    return (await cache.get(getWeeklyRankingCacheKey("Week4"))) ?? [];
+    const rankingData = (await cache.get(getWeeklyRankingCacheKey())) ?? [];
+
+    return rankingData.hasOwnProperty(address) ? rankingData[address] : {};
   }
 
   if (target != "None") {

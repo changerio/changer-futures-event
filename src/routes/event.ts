@@ -302,7 +302,7 @@ eventRouter.get("/weekly/info", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: Week1 | Week2 | Week3 | Week4
+ *        description: MAIN | Week1 | Week2 | Week3 | Week4 | undefined (this week)
  *        example: 'Week1'
  *        schema:
  *          type: string
@@ -355,6 +355,13 @@ eventRouter.get("/weekly/tv", async (req: Request, res: Response) => {
  *    summary: weekly trading event 사용자 정보 조회 (cache) - 데이터 업데이트 안됨
  *    tags: [Event]
  *    parameters:
+ *      - name: target
+ *        in: query
+ *        requires: false
+ *        description: MAIN | Week1 | Week2 | Week3 | Week4 | undefined (this week)
+ *        example: 'Week1'
+ *        schema:
+ *          type: string
  *      - name: address
  *        in: query
  *        requires: true
@@ -375,7 +382,9 @@ eventRouter.get("/weekly/user", async (req: Request, res: Response) => {
   if (!address) {
     return res.status(200).send({});
   }
-  const ret = await getRankingOfTrader(address.toLowerCase());
+  const target: string = (req.query.target as string) ?? "None";
+
+  const ret = await getRankingOfTrader(address.toLowerCase(), target);
   return res.status(200).send(ret);
 });
 

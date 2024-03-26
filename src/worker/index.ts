@@ -2,7 +2,8 @@ import schedule from "node-schedule";
 import { logger } from "../utils/logger";
 
 import { setMidnightPairPrice } from "../services/pythService";
-import { END_TIMESTAMP, setWeeklyTradingEvent, upsertTradingEvent } from "../services/eventService";
+import { setWeeklyTradingEvent, upsertTradingEvent } from "../services/eventService";
+import { END_TIMESTAMP } from "../data/event";
 import { excuteDashboardQuery, executeDashboardTwiceDailyQuery, setAPR } from "../services/duneService";
 
 let retryCount = 0;
