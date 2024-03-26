@@ -274,7 +274,7 @@ eventRouter.post("/weekly/", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: MAIN | Week1 | Week2 | Week3 | Week4 | END | undefined (current week)
+ *        description: MAIN | Week1 | Week2 | Week3 | Week4 | undefined (current week)
  *        example: 'Week1'
  *        schema:
  *          type: string
@@ -302,7 +302,7 @@ eventRouter.get("/weekly/info", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: MAIN | Week1 | Week2 | Week3 | Week4 | undefined (this week)
+ *        description: MAIN | Week1 | Week2 | Week3 | Week4 | END | undefined (this week)
  *        example: 'Week1'
  *        schema:
  *          type: string
@@ -358,7 +358,7 @@ eventRouter.get("/weekly/tv", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: MAIN | Week1 | Week2 | Week3 | Week4 | undefined (this week)
+ *        description: MAIN | Week1 | Week2 | Week3 | Week4 | END | undefined (this week)
  *        example: 'Week1'
  *        schema:
  *          type: string
@@ -398,7 +398,7 @@ eventRouter.get("/weekly/user", async (req: Request, res: Response) => {
  *      - name: target
  *        in: query
  *        requires: false
- *        description: Week1 | Week2 | Week3 | Week4
+ *        description: MAIN | Week1 | Week2 | Week3 | Week4
  *        example: 'Week1'
  *        schema:
  *          type: string
@@ -413,6 +413,7 @@ eventRouter.get("/weekly/user", async (req: Request, res: Response) => {
 eventRouter.delete("/weekly/clear", async (req: Request, res: Response) => {
   const target: string = (req.query.target as string) ?? "None";
   const ret = await clearWeeklyEvent(target);
+
   return res.status(200).send(ret);
 });
 
