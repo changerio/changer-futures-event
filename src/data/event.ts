@@ -1,4 +1,4 @@
-/*
+
 // Weekly 이벤트 진행시 START_TIMESTAMP, END_TIMESTAMP 데이터 수정
 export const START_TIMESTAMP = { 
   MAIN: "1711584000", // 2024년 3월 28일 0시 0분 0초 (UTC+0) //Edit THIS for monthly trading event
@@ -24,8 +24,8 @@ export const EVENT_RANK_TV_REWARD_MAP = {
   Week3: [[1, 500000, 300], [2, 300000, 150], [3, 200000, 100], [7, 100000, 50]],
   Week4: [[1, 500000, 300], [2, 300000, 150], [3, 200000, 100], [7, 100000, 50]],
 }
-*/
 
+/*
 // Weekly 이벤트 진행시 START_TIMESTAMP, END_TIMESTAMP 데이터 수정
 export const START_TIMESTAMP = { 
   // TEST
@@ -53,5 +53,5 @@ export const EVENT_RANK_TV_REWARD_MAP = {
   Week3: [[1, 500000, 300], [2, 300000, 150], [3, 200000, 100], [7, 100000, 50]],
   Week4: [[1, 500000, 300], [2, 300000, 150], [3, 200000, 100], [7, 100000, 50]],
 }
-
+*/
 
