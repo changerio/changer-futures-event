@@ -577,14 +577,17 @@ async function saveTradingEventRanking(
     for(const tvEntity of tvRanking ) {
       let isInRank = false;
 
-      for(let i = 0; i < eventMap.length  ; i++) {
-        if(tvEntity.tvRanking <= eventMap[i][0]) {
-          for(let j = i; j < eventMap.length; j++) {
+      for(let _rank = 0; _rank < eventMap.length  ; _rank++) {
+        
+        if(tvEntity.tvRanking <= eventMap[_rank][0]) {
+          tvEntity.maxRewardTv = eventMap[_rank][1];
+          tvEntity.maxReward = eventMap[_rank][2];
+          tvEntity.reward = 0;
+          isInRank = true;
+
+          for(let j = _rank; j < eventMap.length; j++) {
             if(tvEntity.tv >= eventMap[j][1]) {
-              tvEntity.maxRewardTv = eventMap[i][1];
-              tvEntity.maxReward = eventMap[i][2];
               tvEntity.reward = eventMap[j][2];
-              isInRank = true;
 
               break;
             }
@@ -594,7 +597,7 @@ async function saveTradingEventRanking(
       }
 
       if(!isInRank) {
-        // set default
+        // un-ranked. set default
         tvEntity.maxRewardTv = eventMap[eventMap.length - 1][1];
         tvEntity.maxReward = eventMap[eventMap.length - 1][2];
         tvEntity.reward = 0;
