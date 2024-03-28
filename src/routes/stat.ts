@@ -5,6 +5,7 @@ import {
   getRankingOfPnlRealTime,
   getRankingOfTradingVolumeRealTime,
 } from "../services/eventService";
+import { onlyFromLocal } from "./event";
 
 /**
  * @swagger
@@ -107,20 +108,24 @@ statRouter.get("/day-trade", async (req: Request, res: Response) => {
  *              type: object
  */
 statRouter.get("/tv/realtime", async (req: Request, res: Response) => {
-  const isCsv: boolean =
-    (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
-  const chain: string =
-    (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
-  const startTimestamp: string = (req.query.startTimestamp as string) ?? "0";
-  const endTimestamp: string = req.query.endTimestamp as string;
-  const ret = await getRankingOfTradingVolumeRealTime(
-    chain,
-    startTimestamp,
-    endTimestamp,
-    isCsv
-  );
+  if(onlyFromLocal(req)) {
+    const isCsv: boolean =
+      (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+    const chain: string =
+      (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
+    const startTimestamp: string = (req.query.startTimestamp as string) ?? "0";
+    const endTimestamp: string = req.query.endTimestamp as string;
+    const ret = await getRankingOfTradingVolumeRealTime(
+      chain,
+      startTimestamp,
+      endTimestamp,
+      isCsv
+    );
 
-  return res.status(200).send(ret);
+    return res.status(200).send(ret);
+  } else {
+    return res.status(401).send();
+  }
 });
 
 /**
@@ -167,20 +172,24 @@ statRouter.get("/tv/realtime", async (req: Request, res: Response) => {
  *              type: object
  */
 statRouter.get("/pnl/realtime", async (req: Request, res: Response) => {
-  const isCsv: boolean =
-    (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
-  const chain: string =
-    (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
-  const startTimestamp: string = (req.query.startTimestamp as string) ?? "0";
-  const endTimestamp: string = req.query.endTimestamp as string;
-  const ret = await getRankingOfPnlRealTime(
-    chain,
-    startTimestamp,
-    endTimestamp,
-    isCsv
-  );
+  if(onlyFromLocal(req)) {
+    const isCsv: boolean =
+      (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+    const chain: string =
+      (req.query.chain as string).toLowerCase() ?? ALL_NETWORK_STR;
+    const startTimestamp: string = (req.query.startTimestamp as string) ?? "0";
+    const endTimestamp: string = req.query.endTimestamp as string;
+    const ret = await getRankingOfPnlRealTime(
+      chain,
+      startTimestamp,
+      endTimestamp,
+      isCsv
+    );
 
-  return res.status(200).send(ret);
+    return res.status(200).send(ret);
+  } else {
+    return res.status(401).send();
+  }
 });
 
 export { statRouter };

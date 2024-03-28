@@ -20,7 +20,7 @@ import {
  */
 const eventRouter = Router();
 
-function onlyFromLocal(req: Request) {
+export function onlyFromLocal(req: Request) {
   const clientIp =
     req.headers["x-forwarded-for"] || req.socket?.remoteAddress || null;
   var host = req.get("host");
@@ -33,7 +33,6 @@ function onlyFromLocal(req: Request) {
 }
 
 /**
- * @swagger
  * /event/vault-open/:
  *   get:
  *    summary: 메인넷 오픈 이벤트 vault 예치
@@ -68,18 +67,17 @@ function onlyFromLocal(req: Request) {
  *             schema:
  *              type: object
  */
-eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
-  const isCsv: boolean =
-    (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
-  const startDateStr: string = req.query.startDateStr as string;
-  const endDateStr: string = req.query.endDateStr as string;
-  // const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
+// eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
+//   const isCsv: boolean =
+//     (req.query.isCsv as string).toLowerCase() === "true" ? true : false;
+//   const startDateStr: string = req.query.startDateStr as string;
+//   const endDateStr: string = req.query.endDateStr as string;
+//   // const ret = await getVaultEventUserList(startDateStr, endDateStr, isCsv);
 
-  return res.status(200).send("ok");
-});
+//   return res.status(200).send("ok");
+// });
 
 /**
- * @swagger
  * /event/vault-open/user/:
  *   get:
  *    summary: 메인넷 오픈 이벤트 vault 예치 사용자 조회
@@ -114,16 +112,15 @@ eventRouter.get("/vault-open/", async (req: Request, res: Response) => {
  *             schema:
  *              type: object
  */
-eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
-  const address: string = req.query.address as string;
-  const startDateStr: string = req.query.startDateStr as string;
-  const endDateStr: string = req.query.endDateStr as string;
-  // const ret = await getVaultEventUserData(address.toLowerCase(), startDateStr, endDateStr);
-  return res.status(200).send("ok");
-});
+// eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
+//   const address: string = req.query.address as string;
+//   const startDateStr: string = req.query.startDateStr as string;
+//   const endDateStr: string = req.query.endDateStr as string;
+//   // const ret = await getVaultEventUserData(address.toLowerCase(), startDateStr, endDateStr);
+//   return res.status(200).send("ok");
+// });
 
 /**
- * @swagger
  * /event/mainnet-open/tv/:
  *   get:
  *    summary: 메인넷 win rate competition (trading volume)
@@ -136,14 +133,13 @@ eventRouter.get("/vault-open/user/", async (req: Request, res: Response) => {
  *             schema:
  *              type: object
  */
-eventRouter.get("/mainnet-open/tv", async (req: Request, res: Response) => {
-  const ret = await getRankingOfTradingVolume("MAIN");
+// eventRouter.get("/mainnet-open/tv", async (req: Request, res: Response) => {
+//   const ret = await getRankingOfTradingVolume("MAIN");
 
-  return res.status(200).send(ret);
-});
+//   return res.status(200).send(ret);
+// });
 
 /**
- * @swagger
  * /event/mainnet-open/pnl/:
  *   get:
  *    summary: 메인넷 win rate competition (PNL)
@@ -156,14 +152,13 @@ eventRouter.get("/mainnet-open/tv", async (req: Request, res: Response) => {
  *             schema:
  *              type: object
  */
-eventRouter.get("/mainnet-open/pnl", async (req: Request, res: Response) => {
-  const ret = await getRankingOfPnl("MAIN");
+// eventRouter.get("/mainnet-open/pnl", async (req: Request, res: Response) => {
+//   const ret = await getRankingOfPnl("MAIN");
 
-  return res.status(200).send(ret);
-});
+//   return res.status(200).send(ret);
+// });
 
 /**
- * @swagger
  * /event/mainnet-open/user/:
  *   get:
  *    summary: 메인넷 win rate competition 사용자 정보 조회 (cache) - 데이터 업데이트 안됨
@@ -184,17 +179,16 @@ eventRouter.get("/mainnet-open/pnl", async (req: Request, res: Response) => {
  *             schema:
  *              type: object
  */
-eventRouter.get("/mainnet-open/user", async (req: Request, res: Response) => {
-  const address: string = req.query.address as string;
-  if (!address) {
-    return res.status(200).send({});
-  }
-  const ret = await getRankingOfTrader(address.toLowerCase(), "MAIN");
-  return res.status(200).send(ret);
-});
+// eventRouter.get("/mainnet-open/user", async (req: Request, res: Response) => {
+//   const address: string = req.query.address as string;
+//   if (!address) {
+//     return res.status(200).send({});
+//   }
+//   const ret = await getRankingOfTrader(address.toLowerCase(), "MAIN");
+//   return res.status(200).send(ret);
+// });
 
 /**
- * @swagger
  * /event/mainnet-open/:
  *   post:
  *    summary: 메인넷 오픈 이벤트 수동 업데이트 (reset)
@@ -207,17 +201,16 @@ eventRouter.get("/mainnet-open/user", async (req: Request, res: Response) => {
  *             schema:
  *              type: object
  */
-eventRouter.post("/mainnet-open/", async (req: Request, res: Response) => {
-  if (onlyFromLocal(req)) {
-    const ret = await setMainnetOpenEvent();
-    return res.status(200).send(ret);
-  } else {
-    return res.status(401).send();
-  }
-});
+// eventRouter.post("/mainnet-open/", async (req: Request, res: Response) => {
+//   if (onlyFromLocal(req)) {
+//     const ret = await setMainnetOpenEvent();
+//     return res.status(200).send(ret);
+//   } else {
+//     return res.status(401).send();
+//   }
+// });
 
 /**
- * @swagger
  * /event/mainnet-open/:
  *   put:
  *    summary: 메인넷 오픈 이벤트 수동 업데이트 (upsert)
@@ -411,14 +404,17 @@ eventRouter.get("/weekly/user", async (req: Request, res: Response) => {
  *              type: object
  */
 eventRouter.delete("/weekly/clear", async (req: Request, res: Response) => {
-  const target: string = (req.query.target as string) ?? "None";
-  const ret = await clearWeeklyEvent(target);
+  if (onlyFromLocal(req)) {
+    const target: string = (req.query.target as string) ?? "None";
+    const ret = await clearWeeklyEvent(target);
 
-  return res.status(200).send(ret);
+    return res.status(200).send(ret);
+  } else {
+    return res.status(401).send();
+  }
 });
 
 /**
- * @swagger
  * /event/weekly/tv/all:
  *   get:
  *    summary: weekly trading event (all data)
@@ -446,31 +442,31 @@ eventRouter.delete("/weekly/clear", async (req: Request, res: Response) => {
  *             schema:
  *              type: object
  */
-eventRouter.get("/weekly/tv/all", async (req: Request, res: Response) => {
-  const isCsv: boolean = req.query.isCsv
-    ? (req.query.isCsv as string).toLowerCase() === "true"
-      ? true
-      : false
-    : false;
-  const target: string = (req.query.target as string) ?? "None";
-  const ret: any[] = await getAllRankingOfTradingVolume(target);
+// eventRouter.get("/weekly/tv/all", async (req: Request, res: Response) => {
+//   const isCsv: boolean = req.query.isCsv
+//     ? (req.query.isCsv as string).toLowerCase() === "true"
+//       ? true
+//       : false
+//     : false;
+//   const target: string = (req.query.target as string) ?? "None";
+//   const ret: any[] = await getAllRankingOfTradingVolume(target);
 
-  if (isCsv) {
-    const retCSV: string[] = [];
-    ret.forEach((data) =>
-      retCSV.push(
-        `${data.address},${data.tradeCount},${data.tv},${data.pnl},${data.avgLeverage},${data.avgPnlPercent},${data.sumPnlPercent},${data.tvRanking},${data.pnlRanking}`
-      )
-    );
-    return res
-      .status(200)
-      .send(
-        "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" +
-          retCSV.join("\n")
-      );
-  }
+//   if (isCsv) {
+//     const retCSV: string[] = [];
+//     ret.forEach((data) =>
+//       retCSV.push(
+//         `${data.address},${data.tradeCount},${data.tv},${data.pnl},${data.avgLeverage},${data.avgPnlPercent},${data.sumPnlPercent},${data.tvRanking},${data.pnlRanking}`
+//       )
+//     );
+//     return res
+//       .status(200)
+//       .send(
+//         "address,tradeCount,tv,pnl,avgLeverage,avgPnlPercent,sumPnlPercent,tvRanking,pnlRanking\n" +
+//           retCSV.join("\n")
+//       );
+//   }
 
-  return res.status(200).send(ret);
-});
+//   return res.status(200).send(ret);
+// });
 
 export { eventRouter };
