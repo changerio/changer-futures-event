@@ -2,7 +2,7 @@ import schedule from "node-schedule";
 import { logger } from "../utils/logger";
 
 import { setMidnightPairPrice } from "../services/pythService";
-import { setWeeklyTradingEvent, upsertTradingEvent } from "../services/eventService";
+import { getWeeklyEventTarget, setWeeklyTradingEvent, upsertTradingEvent } from "../services/eventService";
 import { END_TIMESTAMP } from "../data/event";
 import { excuteDashboardQuery, executeDashboardTwiceDailyQuery, setAPR } from "../services/duneService";
 
@@ -12,7 +12,7 @@ const retryMaxCount = 10;
 async function retryUpsertTradingEventOnFailure() {
   try {
     logger.info(`[retryUpsertTradingEventOnFailure] ${new Date()}`);
-    await upsertTradingEvent();
+    await upsertTradingEvent([getWeeklyEventTarget(), "MAIN"]);
   } catch (e) {
     retryCount += 1;
     logger.error(`[retryUpsertTradingEventOnFailure] Fail`);
