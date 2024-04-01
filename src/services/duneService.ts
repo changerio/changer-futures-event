@@ -96,6 +96,19 @@ async function parseAPR(result: DuneExecutionResult) {
       zksync: { cng_apr: zk_cng_apr, usdc_apr: zk_usdc_apr },
     };
 
+    // [TEMP] use yesterday's USDC APR, if today's apr is 0
+    if(!zk_usdc_apr || zk_usdc_apr === 0) {
+      logger.info("zkSync's USDC APR is 0. Use yesterday's value");
+      const cachedApr = await cache.get(CACHE_KEY.VAULT_APR);
+      aprs.zksync.usdc_apr = cachedApr.zksync.usdc_apr;
+    }
+
+    if(!arbi_usdc_apr || arbi_usdc_apr === 0) {
+      logger.info("arbitrum's USDC APR is 0. Use yesterday's value");
+      const cachedApr = await cache.get(CACHE_KEY.VAULT_APR);
+      aprs.arbitrum.usdc_apr = cachedApr.arbitrum.usdc_apr;
+    }
+
     logger.info(
       "[Dune] Set arbi USDC_APR : " +
         arbi_usdc_apr +
