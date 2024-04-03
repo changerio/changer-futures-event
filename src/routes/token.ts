@@ -49,3 +49,43 @@ tokenRouter.get("/allocation", async (req, res) => {
   const alloc = await getTokenAllocation();
   return res.status(200).json(alloc);
 });
+
+/**
+ * @swagger
+ * /token/total-supply:
+ *  get:
+ *    summary: Get total supply of CNG
+ *    tags: [Token]
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          text/plain:
+ *            schema:
+ *              type: string
+ *              example: 200000000
+ */
+tokenRouter.get("/total-supply", async (req, res) => {
+  const alloc = await getTokenAllocation();
+  return res.status(200).send(alloc.totalSupply.toString());
+});
+
+/**
+ * @swagger
+ * /token/circulating:
+ *  get:
+ *    summary: Get circulating amount of CNG
+ *    tags: [Token]
+ *    responses:
+ *      200:
+ *        description: OK
+ *        content:
+ *          text/plain:
+ *            schema:
+ *              type: string
+ *              example: 32617911.016073104
+ */
+tokenRouter.get("/circulating", async (req, res) => {
+  const alloc = await getTokenAllocation();
+  return res.status(200).send(alloc.circulating.toString());
+});
