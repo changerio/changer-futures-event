@@ -28,3 +28,9 @@ export enum PYTH {
 export const ALL_NETWORK_STR = "all";
 export const ARBITRUM_NETWORK_STR = "arbitrum";
 export const ZKSYNCERA_NETWORK_STR = "zksyncera";
+
+export const RPC = {
+  mainnet: "https://eth.llamarpc.com",
+  arbitrum: "https://arbitrum-one.publicnode.com",
+  // zksyncEra: "https://mainnet.era.zksync.io",
+} as const;

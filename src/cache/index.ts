@@ -15,6 +15,11 @@ const duneCache = Cache({
   ns: "dune",
 });
 
+const tokenCache = Cache({
+  basePath: "./.cache/token",
+  ns: "token",
+});
+
 export function getEventCache() {
   return eventCache;
 }
@@ -25,4 +30,8 @@ export function getPairCache() {
 
 export function getDuneCache() {
   return duneCache;
+}
+
+export function getTokenCache() {
+  return tokenCache;
 }

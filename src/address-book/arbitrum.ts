@@ -1,0 +1,2 @@
+export const CNG = "0x4e7e5023656863E26f50E2E6E59489A852C212c1";
+export const GambitStaking = "0x05027E21F6cEfb38970f4e0c04cD6DacA15aCBcE";
