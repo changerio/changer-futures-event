@@ -26,10 +26,16 @@ async function _ERC20_BalanceOf(network: keyof typeof RPC, token: string, accoun
 }
 
 async function _ERC20_totalSupply(network: keyof typeof RPC, token: string) {
+  const cache = getTokenCache();
+  const cacheKey = [network, token, "total-supply"].join("-").toLowerCase();
+  const cached = await cache.get(cacheKey);
+  if (cached) return BigInt(cached);
+
   const url = RPC[network];
   const provider = new JsonRpcProvider(url);
   const tokenContract = ERC20__factory.connect(token, provider);
   const totalSupply = await tokenContract.totalSupply();
+  await cache.set(cacheKey, totalSupply.toString());
   return totalSupply;
 }
 
