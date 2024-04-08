@@ -45,9 +45,14 @@ export const tokenRouter = Router();
  *                  example: 32617911.016073104
  *
  */
-tokenRouter.get("/allocation", async (req, res) => {
-  const alloc = await getTokenAllocation();
-  return res.status(200).json(alloc);
+tokenRouter.get("/allocation", (req, res) => {
+  getTokenAllocation()
+    .then((alloc) => {
+      res.status(200).json(alloc);
+    })
+    .catch((err) => {
+      res.contentType("text/plain").status(500).json(err.message);
+    });
 });
 
 /**
@@ -65,9 +70,14 @@ tokenRouter.get("/allocation", async (req, res) => {
  *              type: string
  *              example: 200000000
  */
-tokenRouter.get("/total-supply", async (req, res) => {
-  const alloc = await getTokenAllocation();
-  return res.contentType("text/plain").status(200).send(alloc.totalSupply.toString());
+tokenRouter.get("/total-supply", (req, res) => {
+  getTokenAllocation()
+    .then((alloc) => {
+      res.contentType("text/plain").status(200).send(alloc.totalSupply.toString());
+    })
+    .catch((err) => {
+      res.contentType("text/plain").status(500).json(err.message);
+    });
 });
 
 /**
@@ -85,7 +95,12 @@ tokenRouter.get("/total-supply", async (req, res) => {
  *              type: string
  *              example: 32617911.016073104
  */
-tokenRouter.get("/circulating", async (req, res) => {
-  const alloc = await getTokenAllocation();
-  return res.contentType("text/plain").status(200).send(alloc.circulating.toString());
+tokenRouter.get("/circulating", (req, res) => {
+  getTokenAllocation()
+    .then((alloc) => {
+      res.contentType("text/plain").status(200).send(alloc.circulating.toString());
+    })
+    .catch((err) => {
+      res.contentType("text/plain").status(500).json(err.message);
+    });
 });
